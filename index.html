@@ -789,6 +789,7 @@ function linkify(text) {
     '<a href="$1" target="_blank" rel="noopener">$1</a>'
   );
 }
+function toggle(head){
   const c=head.closest(".qa-card");
   const open=c.classList.toggle("open");
   head.setAttribute("aria-expanded",open);
@@ -1026,36 +1027,31 @@ async function loadData() {
   const loader = document.getElementById("loader");
   const errBnr = document.getElementById("errorBanner");
 
-  // 1. Check session cache
   try {
-    const cached = sessionStorage.getItem(CACHE_KEY);
-    if (cached) {
-      QA_DATA = JSON.parse(cached);
-      if (QA_DATA.length > 0) {
-        loader.style.display = "none";
-        buildPills();
-        renderBrowse("all");
-        renderSidebar("");
-        return;
-      }
-    }
-  } catch(e) { /* sessionStorage unavailable */ }
-
-  // 2. Fetch from Netlify proxy (15s timeout)
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-    let res;
+    // 1. Check session cache
+    let fromCache = false;
     try {
-      res = await fetch("/api/qa", { signal: controller.signal });
-    } finally {
-      clearTimeout(timeoutId);
-    }
-    if (!res.ok) throw new Error(`Server error ${res.status}`);
-    QA_DATA = await res.json();
-    try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(QA_DATA)); } catch(e) {}
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.length > 0) { QA_DATA = parsed; fromCache = true; }
+      }
+    } catch(e) { /* sessionStorage unavailable */ }
 
-    loader.style.display = "none";
+    // 2. Fetch from Netlify proxy if no cache
+    if (!fromCache) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      let res;
+      try {
+        res = await fetch("/api/qa", { signal: controller.signal });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      QA_DATA = await res.json();
+      try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(QA_DATA)); } catch(e) {}
+    }
 
     if (QA_DATA.length === 0) {
       document.getElementById("resultsContainer").innerHTML =
@@ -1068,13 +1064,15 @@ async function loadData() {
     renderSidebar("");
 
   } catch(err) {
-    loader.style.display = "none";
     const msg = err.name === "AbortError"
       ? "Request timed out. Please check your connection and refresh."
       : `Unable to load Q&A library: ${err.message}. Please refresh.`;
     errBnr.textContent = msg;
     errBnr.classList.add("visible");
     console.error("Data load error:", err);
+
+  } finally {
+    loader.style.display = "none"; // Always hide loader, no matter what
   }
 }
 
