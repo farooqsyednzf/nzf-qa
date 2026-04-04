@@ -28,11 +28,15 @@
   --green-bg:   #ECFFEB;
   --font-head:  'Bree Serif', Georgia, serif;
   --font-body:  'Cambay', Arial, sans-serif;
+
+  /* ── Fixed layout dimensions ── */
+  --page-width:    1060px;
+  --results-height: 640px;
 }
 
 /* ─── Reset ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; }
+html, body { height: 100%; }
 body {
   font-family: var(--font-body);
   color: var(--black);
@@ -43,19 +47,20 @@ body {
 a { color: var(--red); text-decoration: none; font-weight: 700; }
 a:hover { text-decoration: underline; }
 
-/* ─── Page wrapper ───────────────────────────────────────────── */
-.page-wrap { max-width: 1060px; margin: 0 auto; padding: 0 20px 80px; }
+/* ─── Outer shell — fixed width, centred ─────────────────────── */
+.page-shell {
+  width: 100%;
+  max-width: var(--page-width);
+  margin: 0 auto;
+}
 
 /* ─── Hero ───────────────────────────────────────────────────── */
 .hero {
   background: var(--white);
   border-bottom: 3px solid var(--red);
-  margin-bottom: 2px;
 }
 .hero-inner {
-  max-width: 1060px;
-  margin: 0 auto;
-  padding: 48px 20px 40px;
+  padding: 40px 24px 34px;
 }
 .eyebrow {
   font-family: var(--font-body);
@@ -64,29 +69,29 @@ a:hover { text-decoration: underline; }
   letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--red);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 .hero h1 {
   font-family: var(--font-head);
-  font-size: clamp(26px, 3.5vw, 40px);
+  font-size: clamp(24px, 3vw, 36px);
   line-height: 1.2;
   color: var(--black);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .hero-lead {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--grey);
-  line-height: 1.7;
-  margin-bottom: 28px;
-  max-width: 600px;
+  line-height: 1.65;
+  margin-bottom: 22px;
+  max-width: 560px;
 }
 
 /* ─── Search box ─────────────────────────────────────────────── */
 .search-box {
   display: flex;
-  max-width: 660px;
+  max-width: 620px;
   border: 1.5px solid var(--light-grey);
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
   background: var(--white);
   transition: border-color .2s;
@@ -94,14 +99,14 @@ a:hover { text-decoration: underline; }
 .search-box:focus-within { border-color: var(--red); }
 .search-input {
   flex: 1;
+  min-width: 0;
   border: none;
   outline: none;
-  padding: 13px 16px;
+  padding: 11px 14px;
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 14px;
   color: var(--black);
   background: transparent;
-  min-width: 0;
 }
 .search-input::placeholder { color: var(--mid-grey); }
 .clear-btn {
@@ -110,7 +115,7 @@ a:hover { text-decoration: underline; }
   cursor: pointer;
   padding: 0 10px;
   color: var(--mid-grey);
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1;
   display: none;
   align-items: center;
@@ -128,82 +133,81 @@ a:hover { text-decoration: underline; }
   font-weight: 700;
   letter-spacing: .06em;
   text-transform: uppercase;
-  padding: 13px 20px;
+  padding: 11px 18px;
   transition: background .18s;
   white-space: nowrap;
   flex-shrink: 0;
 }
 .search-btn:hover { background: var(--dark-red); }
 
-/* ─── Layout ─────────────────────────────────────────────────── */
+/* ─── Body layout — two columns ──────────────────────────────── */
+.body-wrap {
+  padding: 0 24px 24px;
+}
 .layout {
   display: grid;
-  grid-template-columns: 1fr 260px;
-  gap: 20px;
-  align-items: start;
-  margin-top: 20px;
-}
-@media (max-width: 960px) {
-  .layout { grid-template-columns: 1fr; gap: 16px; }
+  grid-template-columns: 1fr 248px;
+  gap: 18px;
+  margin-top: 18px;
 }
 
 /* ─── Main column ────────────────────────────────────────────── */
 .main-col {
   background: var(--white);
-  padding: 28px 24px;
+  padding: 22px 20px 0;
   border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  /* Fixed height — results scroll inside */
+  height: var(--results-height);
 }
 
-/* ─── Loading state ──────────────────────────────────────────── */
+/* ─── Loading ────────────────────────────────────────────────── */
 .loader {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 24px;
-  gap: 16px;
-  color: var(--grey);
+  flex: 1;
+  gap: 14px;
+  color: var(--mid-grey);
 }
 .loader-ring {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border: 3px solid var(--light-grey);
   border-top-color: var(--red);
   border-radius: 50%;
   animation: spin .75s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.loader p { font-size: 14px; color: var(--mid-grey); }
+.loader p { font-size: 13px; }
 
 /* ─── Error banner ───────────────────────────────────────────── */
 .error-banner {
   background: var(--red-bg);
   border: 1.5px solid var(--red);
-  border-radius: 4px;
-  padding: 14px 18px;
+  border-radius: 3px;
+  padding: 12px 16px;
   color: var(--dark-red);
-  font-size: 13.5px;
-  margin-bottom: 20px;
+  font-size: 13px;
+  margin-bottom: 14px;
   display: none;
 }
 .error-banner.visible { display: block; }
 
-/* ─── Status bar ─────────────────────────────────────────────── */
-.status-bar { min-height: 22px; margin-bottom: 14px; }
-.status-text { font-size: 13px; color: var(--grey); }
-.status-text strong { color: var(--black); font-weight: 700; }
-
-/* ─── Category pills ─────────────────────────────────────────── */
-.cat-pills-wrap { margin-bottom: 18px; }
-.cat-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+/* ─── Top bar: pills + status ────────────────────────────────── */
+.top-bar { flex-shrink: 0; }
+.cat-pills-wrap { margin-bottom: 12px; }
+.cat-pills { display: flex; flex-wrap: wrap; gap: 5px; }
 .cat-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 13px;
+  gap: 4px;
+  padding: 5px 11px;
   border-radius: 2px;
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   letter-spacing: .02em;
   cursor: pointer;
@@ -213,72 +217,109 @@ a:hover { text-decoration: underline; }
   transition: all .15s;
   white-space: nowrap;
 }
-.cat-pill:hover {
-  border-color: var(--red);
-  color: var(--red);
-  background: var(--red-bg);
-}
-.cat-pill.active {
-  background: var(--red);
-  border-color: var(--red);
-  color: var(--white);
-}
+.cat-pill:hover { border-color: var(--red); color: var(--red); background: var(--red-bg); }
+.cat-pill.active { background: var(--red); border-color: var(--red); color: var(--white); }
 .pill-count {
-  background: rgba(0,0,0,.1);
+  background: var(--light-grey);
+  color: var(--grey);
   border-radius: 20px;
-  padding: 1px 6px;
+  padding: 1px 5px;
   font-size: 10px;
   font-weight: 700;
 }
-.cat-pill.active .pill-count { background: rgba(255,255,255,.25); }
-.cat-pill:not(.active) .pill-count { background: var(--light-grey); color: var(--grey); }
+.cat-pill.active .pill-count { background: rgba(255,255,255,.25); color: var(--white); }
+
+.status-bar { min-height: 20px; margin-bottom: 10px; }
+.status-text { font-size: 12.5px; color: var(--grey); }
+.status-text strong { color: var(--black); font-weight: 700; }
+
+/* ─── Scrollable results area ────────────────────────────────── */
+.results-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Subtle scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--light-grey) transparent;
+}
+.results-scroll::-webkit-scrollbar { width: 5px; }
+.results-scroll::-webkit-scrollbar-track { background: transparent; }
+.results-scroll::-webkit-scrollbar-thumb {
+  background: var(--light-grey);
+  border-radius: 10px;
+}
+.results-scroll::-webkit-scrollbar-thumb:hover { background: var(--mid-grey); }
+
+/* ─── Pagination bar ─────────────────────────────────────────── */
+.pagination {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 0 14px;
+  border-top: 1px solid var(--bg);
+}
+.pagination.hidden { display: none; }
+.pg-btn {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  border: 1.5px solid var(--light-grey);
+  background: var(--white);
+  color: var(--grey);
+  border-radius: 2px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: all .15s;
+  min-width: 34px;
+  text-align: center;
+}
+.pg-btn:hover:not(:disabled) { border-color: var(--red); color: var(--red); background: var(--red-bg); }
+.pg-btn.active { background: var(--red); border-color: var(--red); color: var(--white); }
+.pg-btn:disabled { opacity: .35; cursor: default; }
+.pg-btn.prev-next { padding: 5px 12px; }
+.pg-ellipsis { font-size: 12px; color: var(--mid-grey); padding: 0 2px; }
 
 /* ─── Q&A Card ───────────────────────────────────────────────── */
-.qa-list { display: flex; flex-direction: column; gap: 8px; }
-
+.qa-list { display: flex; flex-direction: column; gap: 7px; padding-bottom: 4px; }
 .qa-card {
   border: 1px solid var(--light-grey);
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
   background: var(--white);
-  animation: fadeUp .25s ease both;
-  transition: border-color .18s;
+  animation: fadeUp .22s ease both;
+  transition: border-color .15s;
 }
 .qa-card:hover { border-color: var(--mid-grey); }
 .qa-card.open { border-color: var(--red); }
-
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(5px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
 .qa-card-head {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  padding: 15px 16px;
+  gap: 12px;
+  padding: 13px 14px;
   cursor: pointer;
   user-select: none;
 }
 .qa-left { flex: 1; min-width: 0; }
-.qa-meta { margin-bottom: 6px; }
+.qa-meta { margin-bottom: 5px; }
 .qa-cat-badge {
   font-family: var(--font-body);
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: .08em;
+  letter-spacing: .07em;
   text-transform: uppercase;
   background: var(--red-bg);
   color: var(--red);
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: 2px;
   display: inline-block;
 }
-.qa-question-row {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
+.qa-question-row { display: flex; align-items: baseline; gap: 7px; }
 .qa-qnum {
   font-family: var(--font-body);
   font-size: 11px;
@@ -286,22 +327,21 @@ a:hover { text-decoration: underline; }
   color: var(--red);
   flex-shrink: 0;
   letter-spacing: .04em;
-  min-width: 22px;
+  min-width: 20px;
 }
 .qa-question {
   font-family: var(--font-head);
-  font-size: 15.5px;
+  font-size: 15px;
   color: var(--black);
   line-height: 1.4;
   transition: color .15s;
 }
-.qa-card-head:hover .qa-question { color: var(--red); }
+.qa-card-head:hover .qa-question,
 .qa-card.open .qa-question { color: var(--red); }
-
 .qa-chevron {
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   border: 1.5px solid var(--light-grey);
   display: flex;
@@ -315,17 +355,16 @@ a:hover { text-decoration: underline; }
   border-color: var(--red);
   background: var(--red-bg);
 }
-.qa-chevron svg { width: 13px; height: 13px; color: var(--mid-grey); }
+.qa-chevron svg { width: 12px; height: 12px; color: var(--mid-grey); }
 .qa-card.open .qa-chevron svg { color: var(--red); }
-
-.qa-card-body { max-height: 0; overflow: hidden; transition: max-height .35s ease; }
+.qa-card-body { max-height: 0; overflow: hidden; transition: max-height .32s ease; }
 .qa-card.open .qa-card-body { max-height: 3000px; }
 .qa-answer {
   border-top: 1px solid var(--light-grey);
   border-left: 3px solid var(--red);
-  padding: 16px 16px 18px;
-  font-size: 14px;
-  line-height: 1.8;
+  padding: 14px 14px 16px;
+  font-size: 13.5px;
+  line-height: 1.78;
   color: var(--grey);
   white-space: pre-wrap;
   background: var(--red-bg);
@@ -334,7 +373,7 @@ a:hover { text-decoration: underline; }
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  padding: 10px 16px 14px;
+  padding: 8px 14px 12px;
   background: var(--red-bg);
   border-left: 3px solid var(--red);
 }
@@ -343,35 +382,29 @@ a:hover { text-decoration: underline; }
   font-family: var(--font-body);
   background: var(--bg);
   color: var(--grey);
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: 2px;
   border: 1px solid var(--light-grey);
 }
 
 /* ─── Match highlight ────────────────────────────────────────── */
-mark.hl {
-  background: var(--yellow);
-  border-radius: 2px;
-  padding: 0 2px;
-  font-style: normal;
-  color: var(--black);
-}
+mark.hl { background: var(--yellow); border-radius: 2px; padding: 0 2px; color: var(--black); }
 
 /* ─── Category section header (browse mode) ──────────────────── */
 .cat-sec-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 32px 0 12px;
-  padding-bottom: 8px;
+  margin: 22px 0 8px;
+  padding-bottom: 7px;
   border-bottom: 2px solid var(--red);
 }
 .cat-sec-header:first-child { margin-top: 0; }
-.cat-sec-title { font-family: var(--font-head); font-size: 18px; color: var(--black); }
+.cat-sec-title { font-family: var(--font-head); font-size: 16px; color: var(--black); }
 .cat-sec-count {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .06em;
+  letter-spacing: .05em;
   text-transform: uppercase;
   color: var(--mid-grey);
 }
@@ -379,20 +412,20 @@ mark.hl {
 /* ─── Empty state ────────────────────────────────────────────── */
 .empty-state {
   text-align: center;
-  padding: 56px 24px;
+  padding: 48px 20px;
   border: 1px dashed var(--light-grey);
-  border-radius: 4px;
+  border-radius: 3px;
 }
-.empty-icon { font-size: 36px; margin-bottom: 12px; }
-.empty-state h3 { font-family: var(--font-head); font-size: 19px; margin-bottom: 8px; }
-.empty-state p { color: var(--grey); font-size: 13.5px; max-width: 380px; margin: 0 auto 20px; }
+.empty-icon { font-size: 32px; margin-bottom: 10px; }
+.empty-state h3 { font-family: var(--font-head); font-size: 18px; margin-bottom: 7px; }
+.empty-state p { color: var(--grey); font-size: 13px; max-width: 340px; margin: 0 auto 18px; }
 .empty-cta {
   display: inline-block;
   background: var(--red);
   color: var(--white);
-  padding: 10px 22px;
+  padding: 9px 20px;
   border-radius: 2px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -400,55 +433,63 @@ mark.hl {
 .empty-cta:hover { background: var(--dark-red); text-decoration: none; }
 
 /* ─── Sidebar ────────────────────────────────────────────────── */
-.sidebar { display: flex; flex-direction: column; gap: 16px; }
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* Match main column height so it doesn't overflow */
+  height: var(--results-height);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.sidebar::-webkit-scrollbar { display: none; }
 
 .contact-block {
   background: var(--white);
   border-top: 3px solid var(--red);
-  padding: 18px 18px 20px;
-  border-radius: 0 0 2px 2px;
+  padding: 16px 16px 18px;
+  flex-shrink: 0;
 }
-.contact-block h4 { font-family: var(--font-head); font-size: 15px; color: var(--black); margin-bottom: 4px; }
-.contact-block p { font-size: 12px; color: var(--grey); margin-bottom: 14px; }
-.contact-links { display: flex; flex-direction: column; gap: 6px; }
+.contact-block h4 { font-family: var(--font-head); font-size: 14px; color: var(--black); margin-bottom: 3px; }
+.contact-block p { font-size: 11.5px; color: var(--grey); margin-bottom: 12px; }
+.contact-links { display: flex; flex-direction: column; gap: 5px; }
 .contact-link {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   background: var(--bg);
   border: 1px solid var(--light-grey);
-  border-radius: 3px;
-  padding: 9px 11px;
-  font-size: 12px;
+  border-radius: 2px;
+  padding: 8px 10px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--black);
   text-decoration: none;
   transition: border-color .15s, background .15s;
 }
 .contact-link:hover { border-color: var(--red); background: var(--red-bg); color: var(--red); text-decoration: none; }
-.contact-link .icon { font-size: 14px; }
+.contact-link .icon { font-size: 13px; }
 
-.sidebar-block { background: var(--white); border-radius: 2px; overflow: hidden; }
+.sidebar-block { background: var(--white); flex-shrink: 0; }
 .sidebar-head {
-  padding: 14px 18px 12px;
+  padding: 12px 16px 10px;
   border-bottom: 1px solid var(--light-grey);
   border-top: 3px solid var(--red);
 }
-.sidebar-head h3 { font-family: var(--font-head); font-size: 15px; color: var(--black); }
+.sidebar-head h3 { font-family: var(--font-head); font-size: 14px; color: var(--black); }
 .sidebar-head p {
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--mid-grey);
   margin-top: 2px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .06em;
 }
-.resource-list {}
 .resource-item {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px 18px;
+  gap: 9px;
+  padding: 9px 16px;
   border-bottom: 1px solid var(--bg);
   text-decoration: none;
   color: inherit;
@@ -459,12 +500,12 @@ mark.hl {
 .resource-item.hl-resource {
   background: var(--red-bg);
   border-left: 3px solid var(--red);
-  padding-left: 15px;
+  padding-left: 13px;
 }
 .resource-item.hl-resource:hover { background: #ffe8e6; }
-.resource-icon { font-size: 14px; line-height: 1.5; flex-shrink: 0; }
-.resource-name { font-size: 12px; font-weight: 700; color: var(--black); display: block; line-height: 1.35; }
-.resource-desc { font-size: 11px; color: var(--mid-grey); display: block; margin-top: 1px; }
+.resource-icon { font-size: 13px; line-height: 1.5; flex-shrink: 0; }
+.resource-name { font-size: 11.5px; font-weight: 700; color: var(--black); display: block; line-height: 1.3; }
+.resource-desc { font-size: 10.5px; color: var(--mid-grey); display: block; margin-top: 1px; }
 .resource-item.hl-resource .resource-name { color: var(--red); }
 
 /* ─── Disclaimer ─────────────────────────────────────────────── */
@@ -472,131 +513,146 @@ mark.hl {
   font-size: 11px;
   color: var(--mid-grey);
   text-align: center;
-  margin-top: 32px;
-  padding-top: 20px;
+  margin-top: 16px;
+  padding-top: 14px;
   border-top: 1px solid var(--light-grey);
-  line-height: 1.65;
+  line-height: 1.6;
 }
 .disclaimer a { color: var(--red); font-weight: 700; }
 
 /* ─── Responsive ─────────────────────────────────────────────── */
-@media (max-width: 720px) {
-  .hero-inner { padding: 34px 16px 28px; }
-  .hero h1 { font-size: 24px; }
-  .hero-lead { font-size: 14px; margin-bottom: 20px; }
-  .main-col { padding: 20px 16px; }
-  .page-wrap { padding: 0 0 48px; }
+@media (max-width: 960px) {
+  .layout { grid-template-columns: 1fr; }
+  .main-col { height: auto; min-height: 500px; }
+  .sidebar { height: auto; flex-direction: row; flex-wrap: wrap; }
+  .contact-block { flex: 1 1 280px; }
+  .sidebar-block { flex: 1 1 280px; }
 }
-@media (max-width: 540px) {
-  .hero-inner { padding: 26px 14px 22px; }
-  .hero h1 { font-size: 22px; line-height: 1.25; }
+@media (max-width: 640px) {
+  .hero-inner { padding: 28px 16px 26px; }
+  .hero h1 { font-size: 22px; }
+  .hero-lead { font-size: 13px; margin-bottom: 16px; }
+  .body-wrap { padding: 0 12px 18px; }
+  .main-col { padding: 16px 13px 0; }
   .search-box { flex-wrap: wrap; }
   .search-input { flex: 1 1 100%; order: 1; }
   .clear-btn { order: 2; }
   .search-btn { order: 3; flex: 1; text-align: center; }
-  .main-col { padding: 16px 13px; }
-  .qa-card-head { padding: 12px 13px; }
-  .qa-answer { padding: 13px 13px 15px; }
-  .qa-question { font-size: 14.5px; }
+  .sidebar { flex-direction: column; }
+  .contact-block, .sidebar-block { flex: 1 1 100%; }
+  .qa-question { font-size: 14px; }
 }
 </style>
 </head>
 <body>
 
-<!-- ── Hero ──────────────────────────────────────────────────── -->
-<div class="hero">
-  <div class="hero-inner">
-    <div class="eyebrow">NZF Australia &rsaquo; Zakat Knowledge Base</div>
-    <h1>Zakat Questions &amp; Answers</h1>
-    <p class="hero-lead">Ask any question about Zakat in plain English, or browse all topics below.</p>
-    <div class="search-box">
-      <input type="text" class="search-input" id="searchInput"
-             placeholder="e.g. Do I pay Zakat on my superannuation?"
-             autocomplete="off" aria-label="Search Zakat questions">
-      <button class="clear-btn" id="clearBtn" aria-label="Clear search">&#x2715;</button>
-      <button class="search-btn" id="searchBtn">Search</button>
-    </div>
-  </div>
-</div>
+<div class="page-shell">
 
-<!-- ── Body ──────────────────────────────────────────────────── -->
-<div class="page-wrap">
-
-  <div id="errorBanner" class="error-banner" role="alert"></div>
-
-  <div class="layout">
-
-    <!-- Main column -->
-    <div class="main-col">
-      <div class="cat-pills-wrap">
-        <div class="cat-pills" id="catPills"></div>
-      </div>
-      <div class="status-bar">
-        <div class="status-text" id="statusText"></div>
-      </div>
-      <div id="resultsContainer">
-        <!-- Loading state shown until data arrives -->
-        <div class="loader" id="loader">
-          <div class="loader-ring"></div>
-          <p>Loading Zakat Q&amp;A library&hellip;</p>
-        </div>
+  <!-- ── Hero ──────────────────────────────────────────────────── -->
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">NZF Australia &rsaquo; Zakat Knowledge Base</div>
+      <h1>Zakat Questions &amp; Answers</h1>
+      <p class="hero-lead">Ask any question about Zakat in plain English, or browse all topics below.</p>
+      <div class="search-box">
+        <input type="text" class="search-input" id="searchInput"
+               placeholder="e.g. Do I pay Zakat on my superannuation?"
+               autocomplete="off" aria-label="Search Zakat questions">
+        <button class="clear-btn" id="clearBtn" aria-label="Clear search">&#x2715;</button>
+        <button class="search-btn" id="searchBtn">Search</button>
       </div>
     </div>
-
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="contact-block">
-        <h4>Still have questions?</h4>
-        <p>Speak directly with our Zakat scholars and advisors.</p>
-        <div class="contact-links">
-          <a class="contact-link" href="https://docs.google.com/forms/d/e/1FAIpQLScYTmR3bOntJ8-ocUk0YACYP7EM8jQSdcFGWl0aL0HfLD41XA/viewform" target="_blank" rel="noopener">
-            <span class="icon">&#x1F4C5;</span> Book a Consultation
-          </a>
-          <a class="contact-link" href="tel:0449004663">
-            <span class="icon">&#x1F4DE;</span> 0449 004 663
-          </a>
-          <a class="contact-link" href="https://www.nzf.org.au/calculate/" target="_blank" rel="noopener">
-            <span class="icon">&#x1F9EE;</span> Calculate Your Zakat
-          </a>
-        </div>
-      </div>
-      <div class="sidebar-block">
-        <div class="sidebar-head">
-          <h3>NZF Resources</h3>
-          <p id="sidebarSub">Guides &amp; tools</p>
-        </div>
-        <div class="resource-list" id="resourceList"></div>
-      </div>
-    </aside>
-
   </div>
 
-  <p class="disclaimer">
-    All answers are sourced exclusively from NZF Australia's Zakat knowledge base and published guides.
-    For complex personal situations, please
-    <a href="https://docs.google.com/forms/d/e/1FAIpQLScYTmR3bOntJ8-ocUk0YACYP7EM8jQSdcFGWl0aL0HfLD41XA/viewform" target="_blank" rel="noopener">book a consultation</a>
-    with our Zakat scholars.
-  </p>
-</div>
+  <!-- ── Body ──────────────────────────────────────────────────── -->
+  <div class="body-wrap">
+
+    <div id="errorBanner" class="error-banner" role="alert"></div>
+
+    <div class="layout">
+
+      <!-- Main column: fixed-height, scroll inside -->
+      <div class="main-col">
+
+        <!-- Top bar: pills + status — fixed, doesn't scroll -->
+        <div class="top-bar">
+          <div class="cat-pills-wrap">
+            <div class="cat-pills" id="catPills"></div>
+          </div>
+          <div class="status-bar">
+            <div class="status-text" id="statusText"></div>
+          </div>
+        </div>
+
+        <!-- Scrollable results -->
+        <div class="results-scroll" id="resultsScroll">
+          <div id="resultsContainer">
+            <div class="loader" id="loader">
+              <div class="loader-ring"></div>
+              <p>Loading Zakat Q&amp;A library&hellip;</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination — fixed at bottom of column -->
+        <div class="pagination hidden" id="pagination" role="navigation" aria-label="Results pages"></div>
+
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="contact-block">
+          <h4>Still have questions?</h4>
+          <p>Speak with our Zakat scholars and advisors.</p>
+          <div class="contact-links">
+            <a class="contact-link" href="https://docs.google.com/forms/d/e/1FAIpQLScYTmR3bOntJ8-ocUk0YACYP7EM8jQSdcFGWl0aL0HfLD41XA/viewform" target="_blank" rel="noopener">
+              <span class="icon">&#x1F4C5;</span> Book a Consultation
+            </a>
+            <a class="contact-link" href="tel:0449004663">
+              <span class="icon">&#x1F4DE;</span> 0449 004 663
+            </a>
+            <a class="contact-link" href="https://www.nzf.org.au/calculate/" target="_blank" rel="noopener">
+              <span class="icon">&#x1F9EE;</span> Calculate Your Zakat
+            </a>
+          </div>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-head">
+            <h3>NZF Resources</h3>
+            <p id="sidebarSub">Guides &amp; tools</p>
+          </div>
+          <div id="resourceList"></div>
+        </div>
+      </aside>
+
+    </div>
+
+    <p class="disclaimer">
+      All answers are sourced exclusively from NZF Australia's Zakat knowledge base.
+      For complex personal situations, please
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLScYTmR3bOntJ8-ocUk0YACYP7EM8jQSdcFGWl0aL0HfLD41XA/viewform" target="_blank" rel="noopener">book a consultation</a>.
+    </p>
+  </div>
+
+</div><!-- /page-shell -->
 
 <script>
 /* ══════════════════════════════════════════════════════
-   SESSION CACHE KEY
-   Data is fetched once per browser session from the
-   Netlify function proxy, then stored in sessionStorage.
+   CONFIG
 ══════════════════════════════════════════════════════ */
-const CACHE_KEY = 'nzf_qa_v1';
+const CACHE_KEY  = 'nzf_qa_v1';
+const PER_PAGE   = 10;   // cards per page in browse mode
 
 /* ══════════════════════════════════════════════════════
    NZF RESOURCE LINKS
 ══════════════════════════════════════════════════════ */
 const RESOURCES = [
-  { icon:"🧮", name:"Zakat Calculator",             desc:"Calculate your Zakat online",           url:"https://www.nzf.org.au/calculate/",                               kw:["calculat","how much","rate","percent","nisab","amount","2.5"] },
+  { icon:"🧮", name:"Zakat Calculator",             desc:"Calculate your Zakat online",           url:"https://www.nzf.org.au/calculate/",                               kw:["calculat","how much","rate","percent","nisab","amount"] },
   { icon:"📖", name:"Individuals & Families Guide", desc:"Salary, gold, property & shares",        url:"https://www.nzf.org.au/blog/zakat-guide-for-individuals-families/", kw:["salary","income","gold","jewel","silver","share","stock","property","family","children"] },
-  { icon:"🏦", name:"Superannuation Guide",          desc:"Zakat on super & pensions",              url:"https://www.nzf.org.au/blog/zakat-guide-superannuation/",           kw:["super","superannuation","pension","smsf","retire","employer","voluntary","compulsory"] },
+  { icon:"🏦", name:"Superannuation Guide",          desc:"Zakat on super & pensions",              url:"https://www.nzf.org.au/blog/zakat-guide-superannuation/",           kw:["super","superannuation","pension","smsf","retire","employer","voluntary"] },
   { icon:"👴", name:"Retirees Guide",               desc:"Zakat in retirement",                    url:"https://www.nzf.org.au/blog/zakat-guide-for-retirees/",            kw:["retir","pension","allocated","lump sum","aged"] },
   { icon:"🏢", name:"Business Guide",               desc:"Zakat for business owners",              url:"https://www.nzf.org.au/blog/zakat-guide-for-businesses/",          kw:["business","stock","inventory","trade","company","partnership","uber"] },
-  { icon:"⏪", name:"Missed Zakat Guide",           desc:"How to calculate & pay back Zakat",      url:"https://www.nzf.org.au/blog/missed-zakat/",                        kw:["missed","back","previous","forgot","years","never paid","overdue"] },
+  { icon:"⏪", name:"Missed Zakat Guide",           desc:"Calculate & pay back Zakat",             url:"https://www.nzf.org.au/blog/missed-zakat/",                        kw:["missed","back","previous","forgot","years","never paid","overdue"] },
   { icon:"💳", name:"Pay Zakat Online",             desc:"Pay securely via nzf.org.au",            url:"https://www.nzf.org.au/pay/zakat/",                               kw:["pay","payment","donate","transfer","bank","give"] },
   { icon:"🤲", name:"Apply for Assistance",         desc:"Apply if you are in financial need",      url:"https://www.nzf.org.au/apply/",                                   kw:["apply","receive","help","assistance","eligible","hardship","poor","needy","welfare"] },
   { icon:"🎓", name:"Zakat Masterclass",            desc:"Free online Zakat course",               url:"https://www.nzf.org.au/zakat-masterclass/",                        kw:["learn","course","masterclass","basics","understand","what is"] },
@@ -654,7 +710,7 @@ function expand(tokens) {
   tokens.forEach(t => { if(SYNS[t]) SYNS[t].forEach(s => out.add(s.toLowerCase())); });
   return [...out];
 }
-function score(item, tokens) {
+function scoreItem(item, tokens) {
   const q=item.question.toLowerCase(), a=item.answer.toLowerCase();
   const cat=item.category.toLowerCase(), tags=(item.tags||"").toLowerCase();
   let s=0;
@@ -673,14 +729,18 @@ function doSearch(query) {
   const tokens=expand(tokenise(query));
   if(!tokens.length) return [];
   return QA_DATA
-    .map(item=>({item,s:score(item,tokens)}))
+    .map(item=>({item,s:scoreItem(item,tokens)}))
     .filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,8).map(x=>x.item);
 }
 
 /* ══════════════════════════════════════════════════════
    RENDER HELPERS
 ══════════════════════════════════════════════════════ */
-let QA_DATA = [];
+let QA_DATA  = [];
+let activeCat    = "all";
+let currentPage  = 1;
+let currentItems = [];   // flat array of items currently displayed
+let searchMode   = false;
 
 function esc(s){
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")
@@ -695,9 +755,9 @@ function highlight(text,query){
   });
   return r;
 }
-function card(item,idx,query){
+function card(item, idx, query){
   const tags=(item.tags||"").split(",").map(t=>t.trim()).filter(Boolean);
-  const delay=`animation-delay:${Math.min(idx*.05,.4)}s`;
+  const delay=`animation-delay:${Math.min(idx*.04,.3)}s`;
   return `
 <div class="qa-card" style="${delay}">
   <div class="qa-card-head" role="button" tabindex="0"
@@ -738,15 +798,147 @@ function emptyState(title,msg){
 }
 
 /* ══════════════════════════════════════════════════════
+   PAGINATION
+══════════════════════════════════════════════════════ */
+function renderPagination(total, page) {
+  const pg = document.getElementById("pagination");
+  const totalPages = Math.ceil(total / PER_PAGE);
+
+  if (totalPages <= 1) { pg.classList.add("hidden"); return; }
+  pg.classList.remove("hidden");
+
+  // Build page numbers with ellipsis for large ranges
+  const pages = [];
+  const delta = 2;
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages ||
+        (i >= page - delta && i <= page + delta)) {
+      pages.push(i);
+    } else if (pages[pages.length - 1] !== "...") {
+      pages.push("...");
+    }
+  }
+
+  let html = `<button class="pg-btn prev-next" ${page===1?"disabled":""} onclick="goPage(${page-1})" aria-label="Previous page">&lsaquo; Prev</button>`;
+
+  pages.forEach(p => {
+    if (p === "...") {
+      html += `<span class="pg-ellipsis">&hellip;</span>`;
+    } else {
+      html += `<button class="pg-btn${p===page?" active":""}" onclick="goPage(${p})" aria-label="Page ${p}" aria-current="${p===page?'page':'false'}">${p}</button>`;
+    }
+  });
+
+  html += `<button class="pg-btn prev-next" ${page===totalPages?"disabled":""} onclick="goPage(${page+1})" aria-label="Next page">Next &rsaquo;</button>`;
+
+  pg.innerHTML = html;
+}
+
+function goPage(page) {
+  currentPage = page;
+  renderPage();
+  // Scroll results back to top
+  document.getElementById("resultsScroll").scrollTop = 0;
+}
+
+/* ══════════════════════════════════════════════════════
+   CATEGORY ORDER
+══════════════════════════════════════════════════════ */
+const CAT_ORDER = [
+  "Zakat Basics","Nisab & Calculation","Zakat Anniversary & Timing",
+  "Zakat on Gold & Silver","Superannuation","Property & Land","Debts & Liabilities",
+  "Shares & Business","Zakat Recipients","Zakat al-Fitr","Fidyah & Kaffarah",
+  "NZF Operations & Paying Zakat","Special Circumstances"
+];
+
+/* ══════════════════════════════════════════════════════
+   RENDER PAGE (paginated slice of currentItems)
+══════════════════════════════════════════════════════ */
+function renderPage() {
+  const con = document.getElementById("resultsContainer");
+  const st  = document.getElementById("statusText");
+  const total = currentItems.length;
+
+  if (total === 0) {
+    con.innerHTML = emptyState("No matching questions found",
+      "Try rephrasing your question or browsing by topic above.");
+    renderPagination(0, 1);
+    return;
+  }
+
+  const start = (currentPage - 1) * PER_PAGE;
+  const end   = Math.min(start + PER_PAGE, total);
+  const pageItems = currentItems.slice(start, end);
+
+  if (searchMode) {
+    // Search: show all results (max 8), no pagination
+    con.innerHTML = `<div class="qa-list">${currentItems.map((item,i)=>card(item,i,currentQuery)).join("")}</div>`;
+    document.getElementById("pagination").classList.add("hidden");
+    st.innerHTML = `<strong>${total}</strong> result${total!==1?"s":""} for "<strong>${esc(currentQuery)}</strong>"`;
+    return;
+  }
+
+  // Browse mode: group by category, only show items on this page
+  if (activeCat === "all") {
+    // Preserve category grouping within the page slice
+    const groups = {};
+    pageItems.forEach(q => { (groups[q.category]=groups[q.category]||[]).push(q); });
+    con.innerHTML = CAT_ORDER.filter(c => groups[c]).map(c => `
+      <div class="cat-sec-header">
+        <span class="cat-sec-title">${esc(c)}</span>
+        <span class="cat-sec-count">${groups[c].length} question${groups[c].length!==1?"s":""}</span>
+      </div>
+      <div class="qa-list">${groups[c].map((item,i)=>card(item,i,"")).join("")}</div>`).join("");
+
+    const from = start + 1, to = end;
+    st.innerHTML = `Showing <strong>${from}–${to}</strong> of <strong>${total}</strong> questions`;
+  } else {
+    // Single category: paginate flat
+    con.innerHTML = `<div class="qa-list">${pageItems.map((item,i)=>card(item,i,"")).join("")}</div>`;
+    const from = start + 1, to = end;
+    st.innerHTML = total > PER_PAGE
+      ? `Showing <strong>${from}–${to}</strong> of <strong>${total}</strong> in <em>${esc(activeCat)}</em>`
+      : `<strong>${total}</strong> question${total!==1?"s":""} in <em>${esc(activeCat)}</em>`;
+  }
+
+  renderPagination(total, currentPage);
+}
+
+/* ══════════════════════════════════════════════════════
+   BROWSE & SEARCH
+══════════════════════════════════════════════════════ */
+let currentQuery = "";
+
+function renderBrowse(cat) {
+  activeCat   = cat;
+  searchMode  = false;
+  currentPage = 1;
+  currentItems = cat === "all" ? [...QA_DATA] : QA_DATA.filter(q => q.category === cat);
+  renderPage();
+  renderSidebar("");
+}
+
+function renderSearch(query) {
+  if (!query.trim()) { renderBrowse(activeCat); return; }
+  currentQuery = query;
+  searchMode   = true;
+  currentPage  = 1;
+  currentItems = doSearch(query);
+  document.querySelectorAll(".cat-pill").forEach(p => p.classList.remove("active"));
+  renderPage();
+  renderSidebar(query);
+}
+
+/* ══════════════════════════════════════════════════════
    SIDEBAR
 ══════════════════════════════════════════════════════ */
-function renderSidebar(query){
-  const ql=query.toLowerCase(),hl=[],norm=[];
-  RESOURCES.forEach(r=>(query&&r.kw.some(k=>ql.includes(k))?hl:norm).push(r));
-  document.getElementById("sidebarSub").textContent=
-    hl.length?`${hl.length} guide${hl.length>1?"s":""} match your search`:"Guides & tools";
-  document.getElementById("resourceList").innerHTML=
-    [...hl.map(r=>({...r,hl:true})),...norm].map(r=>`
+function renderSidebar(query) {
+  const ql = query.toLowerCase(), hl = [], norm = [];
+  RESOURCES.forEach(r => (query && r.kw.some(k => ql.includes(k)) ? hl : norm).push(r));
+  document.getElementById("sidebarSub").textContent =
+    hl.length ? `${hl.length} guide${hl.length>1?"s":""} match your search` : "Guides & tools";
+  document.getElementById("resourceList").innerHTML =
+    [...hl.map(r=>({...r,hl:true})),...norm].map(r => `
       <a class="resource-item${r.hl?" hl-resource":""}" href="${r.url}" target="_blank" rel="noopener">
         <span class="resource-icon">${r.icon}</span>
         <span><span class="resource-name">${r.name}</span>
@@ -757,116 +949,69 @@ function renderSidebar(query){
 /* ══════════════════════════════════════════════════════
    CATEGORY PILLS
 ══════════════════════════════════════════════════════ */
-const CAT_ORDER = [
-  "Zakat Basics","Nisab & Calculation","Zakat Anniversary & Timing",
-  "Zakat on Gold & Silver","Superannuation","Property & Land","Debts & Liabilities",
-  "Shares & Business","Zakat Recipients","Zakat al-Fitr","Fidyah & Kaffarah",
-  "NZF Operations & Paying Zakat","Special Circumstances"
-];
-let activeCat = "all";
-
-function buildPills(){
-  const counts={};
-  QA_DATA.forEach(q=>counts[q.category]=(counts[q.category]||0)+1);
-  const pills=document.getElementById("catPills");
-  pills.innerHTML="";
-  const mk=(cat,label,count)=>{
-    const b=document.createElement("button");
-    b.className="cat-pill"+(cat==="all"?" active":"");
-    b.dataset.cat=cat;
-    b.innerHTML=`${esc(label)} <span class="pill-count">${count}</span>`;
-    b.addEventListener("click",()=>selectCat(cat));
+function buildPills() {
+  const counts = {};
+  QA_DATA.forEach(q => counts[q.category] = (counts[q.category]||0)+1);
+  const pills = document.getElementById("catPills");
+  pills.innerHTML = "";
+  const mk = (cat, label, count) => {
+    const b = document.createElement("button");
+    b.className = "cat-pill" + (cat==="all" ? " active" : "");
+    b.dataset.cat = cat;
+    b.innerHTML = `${esc(label)} <span class="pill-count">${count}</span>`;
+    b.addEventListener("click", () => selectCat(cat));
     pills.appendChild(b);
   };
   mk("all","All Topics",QA_DATA.length);
-  CAT_ORDER.forEach(c=>{if(counts[c])mk(c,c,counts[c]);});
-}
-function selectCat(cat){
-  activeCat=cat;
-  document.getElementById("searchInput").value="";
-  document.getElementById("clearBtn").classList.remove("visible");
-  document.querySelectorAll(".cat-pill").forEach(p=>p.classList.toggle("active",p.dataset.cat===cat));
-  renderBrowse(cat);
-  renderSidebar("");
+  CAT_ORDER.forEach(c => { if(counts[c]) mk(c, c, counts[c]); });
 }
 
-/* ══════════════════════════════════════════════════════
-   BROWSE & SEARCH RENDER
-══════════════════════════════════════════════════════ */
-function renderBrowse(cat){
-  const items=cat==="all"?QA_DATA:QA_DATA.filter(q=>q.category===cat);
-  const con=document.getElementById("resultsContainer"),st=document.getElementById("statusText");
-  if(!items.length){con.innerHTML=emptyState("No questions found","Try a different category.");st.innerHTML="";return;}
-  if(cat==="all"){
-    const groups={};
-    items.forEach(q=>{(groups[q.category]=groups[q.category]||[]).push(q);});
-    con.innerHTML=CAT_ORDER.filter(c=>groups[c]).map(c=>`
-      <div class="cat-sec-header">
-        <span class="cat-sec-title">${esc(c)}</span>
-        <span class="cat-sec-count">${groups[c].length} question${groups[c].length!==1?"s":""}</span>
-      </div>
-      <div class="qa-list">${groups[c].map((item,i)=>card(item,i,"")).join("")}</div>`).join("");
-    st.innerHTML=`<strong>${items.length}</strong> questions across <strong>${CAT_ORDER.filter(c=>groups[c]).length}</strong> topics`;
-  }else{
-    con.innerHTML=`<div class="qa-list">${items.map((item,i)=>card(item,i,"")).join("")}</div>`;
-    st.innerHTML=`<strong>${items.length}</strong> question${items.length!==1?"s":""} in <em>${esc(cat)}</em>`;
-  }
-}
-function renderSearch(query){
-  if(!query.trim()){renderBrowse(activeCat);return;}
-  const results=doSearch(query);
-  const con=document.getElementById("resultsContainer"),st=document.getElementById("statusText");
-  renderSidebar(query);
-  document.querySelectorAll(".cat-pill").forEach(p=>p.classList.remove("active"));
-  if(!results.length){
-    con.innerHTML=emptyState("No matching questions found",
-      `We couldn't find a match for "<strong>${esc(query)}</strong>". Try rephrasing or browse by topic above.`);
-    st.innerHTML=`No results for "<strong>${esc(query)}</strong>"`;
-    return;
-  }
-  con.innerHTML=`<div class="qa-list">${results.map((item,i)=>card(item,i,query)).join("")}</div>`;
-  st.innerHTML=`<strong>${results.length}</strong> result${results.length!==1?"s":""} for "<strong>${esc(query)}</strong>"`;
+function selectCat(cat) {
+  document.getElementById("searchInput").value = "";
+  document.getElementById("clearBtn").classList.remove("visible");
+  currentQuery = "";
+  document.querySelectorAll(".cat-pill").forEach(p =>
+    p.classList.toggle("active", p.dataset.cat === cat));
+  renderBrowse(cat);
 }
 
 /* ══════════════════════════════════════════════════════
    SEARCH UI EVENTS
 ══════════════════════════════════════════════════════ */
 let searchTimer;
-document.getElementById("searchInput").addEventListener("input",function(){
-  const v=this.value.trim();
-  document.getElementById("clearBtn").classList.toggle("visible",v.length>0);
+document.getElementById("searchInput").addEventListener("input", function() {
+  const v = this.value.trim();
+  document.getElementById("clearBtn").classList.toggle("visible", v.length > 0);
   clearTimeout(searchTimer);
-  if(!v){renderBrowse(activeCat);renderSidebar("");return;}
-  if(v.length>=3) searchTimer=setTimeout(()=>renderSearch(v),300);
+  if (!v) { renderBrowse(activeCat); renderSidebar(""); return; }
+  if (v.length >= 3) searchTimer = setTimeout(() => renderSearch(v), 300);
 });
-document.getElementById("searchInput").addEventListener("keydown",function(e){
-  if(e.key==="Enter"){clearTimeout(searchTimer);renderSearch(this.value.trim());}
+document.getElementById("searchInput").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") { clearTimeout(searchTimer); renderSearch(this.value.trim()); }
 });
-document.getElementById("searchBtn").addEventListener("click",()=>{
+document.getElementById("searchBtn").addEventListener("click", () => {
   clearTimeout(searchTimer);
   renderSearch(document.getElementById("searchInput").value.trim());
 });
-document.getElementById("clearBtn").addEventListener("click",function(){
-  document.getElementById("searchInput").value="";
+document.getElementById("clearBtn").addEventListener("click", function() {
+  document.getElementById("searchInput").value = "";
   this.classList.remove("visible");
-  renderBrowse(activeCat);renderSidebar("");
-  document.querySelectorAll(".cat-pill").forEach(p=>
-    p.classList.toggle("active",p.dataset.cat===activeCat));
+  currentQuery = "";
+  renderBrowse(activeCat);
+  renderSidebar("");
+  document.querySelectorAll(".cat-pill").forEach(p =>
+    p.classList.toggle("active", p.dataset.cat === activeCat));
   document.getElementById("searchInput").focus();
 });
 
 /* ══════════════════════════════════════════════════════
    DATA LOADING — session-cached proxy fetch
-   Fetches from /.netlify/functions/coda-proxy (via
-   the /api/qa redirect in netlify.toml).
-   Result is stored in sessionStorage so Coda is only
-   called once per browser session.
 ══════════════════════════════════════════════════════ */
-async function loadData(){
+async function loadData() {
   const loader = document.getElementById("loader");
   const errBnr = document.getElementById("errorBanner");
 
-  // 1. Check session cache first
+  // 1. Check session cache
   try {
     const cached = sessionStorage.getItem(CACHE_KEY);
     if (cached) {
@@ -879,20 +1024,13 @@ async function loadData(){
         return;
       }
     }
-  } catch(e) {
-    // sessionStorage unavailable (private browsing edge case) — continue to fetch
-  }
+  } catch(e) { /* sessionStorage unavailable */ }
 
-  // 2. Fetch from Netlify proxy function
+  // 2. Fetch from Netlify proxy
   try {
     const res = await fetch("/api/qa");
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Server error ${res.status}: ${text}`);
-    }
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
     QA_DATA = await res.json();
-
-    // 3. Store in session cache
     try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(QA_DATA)); } catch(e) {}
 
     loader.style.display = "none";
@@ -909,7 +1047,7 @@ async function loadData(){
 
   } catch(err) {
     loader.style.display = "none";
-    errBnr.textContent = `Unable to load Q&A library: ${err.message}. Please refresh the page.`;
+    errBnr.textContent = `Unable to load Q&A library: ${err.message}. Please refresh.`;
     errBnr.classList.add("visible");
     console.error("Data load error:", err);
   }
