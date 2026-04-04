@@ -1041,9 +1041,16 @@ async function loadData() {
     }
   } catch(e) { /* sessionStorage unavailable */ }
 
-  // 2. Fetch from Netlify proxy
+  // 2. Fetch from Netlify proxy (15s timeout)
   try {
-    const res = await fetch("/api/qa");
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    let res;
+    try {
+      res = await fetch("/api/qa", { signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
     if (!res.ok) throw new Error(`Server error ${res.status}`);
     QA_DATA = await res.json();
     try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(QA_DATA)); } catch(e) {}
@@ -1062,7 +1069,10 @@ async function loadData() {
 
   } catch(err) {
     loader.style.display = "none";
-    errBnr.textContent = `Unable to load Q&A library: ${err.message}. Please refresh.`;
+    const msg = err.name === "AbortError"
+      ? "Request timed out. Please check your connection and refresh."
+      : `Unable to load Q&A library: ${err.message}. Please refresh.`;
+    errBnr.textContent = msg;
     errBnr.classList.add("visible");
     console.error("Data load error:", err);
   }
