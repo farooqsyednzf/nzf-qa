@@ -778,12 +778,17 @@ function card(item, idx, query){
     </div>
   </div>
   <div class="qa-card-body">
-    <div class="qa-answer">${esc(item.answer)}</div>
+    <div class="qa-answer">${linkify(esc(item.answer))}</div>
     ${tags.length?`<div class="qa-tags">${tags.map(t=>`<span class="qa-tag">${esc(t)}</span>`).join("")}</div>`:""}
   </div>
 </div>`;
 }
-function toggle(head){
+function linkify(text) {
+  return text.replace(
+    /(https?:\/\/[^\s<>"]+)/g,
+    '<a href="$1" target="_blank" rel="noopener">$1</a>'
+  );
+}
   const c=head.closest(".qa-card");
   const open=c.classList.toggle("open");
   head.setAttribute("aria-expanded",open);
