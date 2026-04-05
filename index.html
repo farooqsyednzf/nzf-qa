@@ -784,12 +784,18 @@ function card(item, idx, query){
 </div>`;
 }
 function linkify(text) {
-  // Match full URLs (https://...) and bare URLs (nzf.org.au/...)
+  // Match full URLs (https://...) and bare URLs (nzf.org.au/...), stripping trailing punctuation
   return text
-    .replace(/(https?:\/\/[^\s<>"]+)/g,
-      '<a href="$1" target="_blank" rel="noopener">$1</a>')
-    .replace(/(?<!["'=])((?:[a-zA-Z0-9-]+\.)+(?:com|org|au|net|io|co)(?:\/[^\s<>"]*)?)/g,
-      (match) => `<a href="https://${match}" target="_blank" rel="noopener">${match}</a>`);
+    .replace(/(https?:\/\/[^\s<>"]+)/g, (match) => {
+      const clean = match.replace(/[.,;:!?)]+$/, '');
+      const tail = match.slice(clean.length);
+      return `<a href="${clean}" target="_blank" rel="noopener">${clean}</a>${tail}`;
+    })
+    .replace(/(?<!["'=])((?:[a-zA-Z0-9-]+\.)+(?:com|org|au|net|io|co)(?:\/[^\s<>"]*)?)/g, (match) => {
+      const clean = match.replace(/[.,;:!?)]+$/, '');
+      const tail = match.slice(clean.length);
+      return `<a href="https://${clean}" target="_blank" rel="noopener">${clean}</a>${tail}`;
+    });
 }
 function toggle(head){
   const c=head.closest(".qa-card");
