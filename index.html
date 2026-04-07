@@ -586,7 +586,7 @@ mark.hl {
 /* ─── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 960px) {
   .layout { grid-template-columns: 1fr; }
-  .main-col { height: auto; min-height: 500px; }
+  .main-col { height: 800px; } /* Fixed — never auto */
   .sidebar { height: auto; flex-direction: row; flex-wrap: wrap; }
   .contact-block { flex: 1 1 280px; }
   .sidebar-block { flex: 1 1 280px; }
@@ -596,7 +596,7 @@ mark.hl {
   .hero h1 { font-size: 24px; }
   .hero-lead { font-size: 13.5px; margin-bottom: 20px; }
   .body-wrap { padding: 0 14px 20px; }
-  .main-col { padding: 18px 16px 0; border-radius: var(--radius-md); }
+  .main-col { height: 700px; padding: 18px 16px 0; border-radius: var(--radius-md); } /* Fixed — never auto */
   .search-btn { padding: 12px 18px; }
   .sidebar { flex-direction: column; }
   .contact-block, .sidebar-block { flex: 1 1 100%; }
