@@ -22,7 +22,7 @@ const ZOHO_ORG_ID        = '914791857';
 // Department + agent routing for Zakat Q&A tickets
 // All tickets from the QA page go to Zakat Education (Ahmed Mostafa)
 // — he handles inbound knowledge queries
-const DEPT_ID   = '1253395000000428001'; // Zakat Education
+const DEPT_ID   = '1253395000000457123'; // Zakat Education
 const AGENT_ID  = '1253395000000428005'; // Ahmed Mostafa
 
 exports.handler = async (event) => {
