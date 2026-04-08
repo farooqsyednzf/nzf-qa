@@ -612,6 +612,46 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
 .chat-send-btn:disabled { background: var(--light-grey); cursor: default; box-shadow: none; transform: none; }
 .chat-send-btn svg { width: 15px; height: 15px; color: var(--white); }
 
+/* ─── Page footer ────────────────────────────────────────────── */
+.page-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-top: 24px;
+  background: var(--white);
+  border: 1px solid rgba(207,203,201,.4);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.footer-action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 16px 20px;
+  text-decoration: none;
+  color: var(--black);
+  font-weight: 700;
+  font-size: 13.5px;
+  transition: background .15s, color .15s;
+}
+.footer-action:hover {
+  background: var(--red-bg);
+  color: var(--red);
+  text-decoration: none;
+}
+.footer-action-icon { font-size: 17px; flex-shrink: 0; }
+.footer-action-label { white-space: nowrap; }
+.footer-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(207,203,201,.6);
+  flex-shrink: 0;
+}
+
 /* ─── Disclaimer ─────────────────────────────────────────────── */
 .disclaimer {
   font-size: 11.5px;
@@ -709,6 +749,9 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
   .qa-card-head { padding: 14px 14px; }
   .chat-agent { height: 440px; }
   .ticket-form { padding: 22px 18px 20px; }
+  .page-footer { flex-direction: column; border-radius: var(--radius-md); }
+  .footer-divider { width: 100%; height: 1px; }
+  .footer-action { width: 100%; padding: 14px 20px; }
 }
 </style>
 </head>
@@ -826,11 +869,23 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
 
     </div>
 
-    <p class="disclaimer">
-      All answers are sourced exclusively from NZF Australia's Zakat knowledge base.
-      For complex personal situations, please
-      <a href="https://docs.google.com/forms/d/e/1FAIpQLScYTmR3bOntJ8-ocUk0YACYP7EM8jQSdcFGWl0aL0HfLD41XA/viewform" target="_blank" rel="noopener">book a consultation</a>.
-    </p>
+    <div class="page-footer">
+      <a class="footer-action" href="https://docs.google.com/forms/d/e/1FAIpQLScYTmR3bOntJ8-ocUk0YACYP7EM8jQSdcFGWl0aL0HfLD41XA/viewform" target="_blank" rel="noopener">
+        <span class="footer-action-icon">📅</span>
+        <span class="footer-action-label">Book a Consultation</span>
+      </a>
+      <div class="footer-divider"></div>
+      <a class="footer-action" href="tel:0449004663">
+        <span class="footer-action-icon">📞</span>
+        <span class="footer-action-label">0449 004 663</span>
+      </a>
+      <div class="footer-divider"></div>
+      <a class="footer-action" href="https://www.nzf.org.au/calculate/" target="_blank" rel="noopener">
+        <span class="footer-action-icon">🧮</span>
+        <span class="footer-action-label">Calculate Your Zakat</span>
+      </a>
+    </div>
+    <p class="disclaimer">All answers are sourced exclusively from NZF Australia's Zakat knowledge base. For complex personal situations, please <a href="https://docs.google.com/forms/d/e/1FAIpQLScYTmR3bOntJ8-ocUk0YACYP7EM8jQSdcFGWl0aL0HfLD41XA/viewform" target="_blank" rel="noopener">book a consultation</a>.</p>
   </div>
 
 </div>
