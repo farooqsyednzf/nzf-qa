@@ -1,12 +1,19 @@
 [build]
-  publish = "."
+  publish   = "."
   functions = "netlify/functions"
+  command   = "npm install"
 
 [functions]
   node_bundler = "esbuild"
 
-# Redirect /api/qa to the function for cleaner URLs
+[functions."qa"]
+  timeout = 20
+
+[functions."ticket"]
+  timeout = 15
+
+# Route /api/* calls to the matching Netlify function
 [[redirects]]
-  from = "/api/qa"
-  to   = "/.netlify/functions/coda-proxy"
+  from   = "/api/*"
+  to     = "/.netlify/functions/:splat"
   status = 200
