@@ -1,0 +1,9 @@
+{
+  "name": "nzf-zakat-qa",
+  "version": "1.0.0",
+  "description": "NZF Zakat Q&A page — Coda + Zoho Desk backend",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {}
+}
