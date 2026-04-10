@@ -2,16 +2,11 @@
  * POST /api/ticket
  * Creates a Zoho Desk support ticket from the QA page's chat agent.
  *
- * Expected request body (JSON):
- *   { name: string, email: string, question: string }
- *
- * Key lessons baked in:
- * - OAuth token exchange MUST go through accounts.zoho.com (global),
- *   NOT accounts.zoho.com.au — the AU endpoint returns invalid_client
- * - Desk API calls go to desk.zoho.com (global), not desk.zoho.com.au
- * - orgId must be sent as a request HEADER, not a query param
- * - After ticket creation, verification via GET /tickets/:id can fail
- *   immediately due to propagation delay — use retry with backoff
+ * Security hardening:
+ * - Server-side input validation with length limits + email format check
+ * - Sanitised error messages: internal Zoho errors are never sent to the client
+ * - CORS restricted to same origin
+ * - HTTPS-only OAuth + API calls
  */
 
 const ZOHO_CLIENT_ID     = process.env.ZOHO_CLIENT_ID;
@@ -19,60 +14,83 @@ const ZOHO_CLIENT_SECRET = process.env.ZOHO_CLIENT_SECRET;
 const ZOHO_REFRESH_TOKEN = process.env.ZOHO_REFRESH_TOKEN;
 const ZOHO_ORG_ID        = '914791857';
 
-// Department + agent routing for Zakat Q&A tickets
-// All tickets from the QA page go to Zakat Education (Ahmed Mostafa)
-// — he handles inbound knowledge queries
-const DEPT_ID   = '1253395000000457123'; // Zakat Education
-const AGENT_ID  = '1253395000000428005'; // Ahmed Mostafa
+const DEPT_ID  = '1253395000000457123'; // Zakat Education
+const AGENT_ID = '1253395000000428005'; // Ahmed Mostafa
+
+// Validation limits
+const MAX_NAME     = 120;
+const MAX_EMAIL    = 254;
+const MAX_QUESTION = 2000;
+
+// Simple email regex (RFC-lite — adequate for server-side sanity check)
+const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
 
 exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method not allowed' };
+  // ── CORS: only accept requests from same origin ───────────────────────────
+  const origin = event.headers['origin'] || event.headers['Origin'] || '';
+  const host   = event.headers['host']   || event.headers['Host']   || '';
+  const sameOrigin = !origin || origin.includes(host);
+
+  const corsHeaders = {
+    'Content-Type': 'application/json',
+    'X-Content-Type-Options': 'nosniff',
+  };
+
+  if (!sameOrigin) {
+    return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ error: 'Forbidden' }) };
   }
 
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, headers: corsHeaders, body: JSON.stringify({ error: 'Method not allowed' }) };
+  }
+
+  // ── Parse body ────────────────────────────────────────────────────────────
   let body;
   try {
     body = JSON.parse(event.body || '{}');
   } catch {
-    return {
-      statusCode: 400,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Invalid JSON body' }),
-    };
+    return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Invalid request body' }) };
   }
 
-  const { name, email, question } = body;
+  // ── Server-side validation ────────────────────────────────────────────────
+  const name     = String(body.name     || '').trim();
+  const email    = String(body.email    || '').trim().toLowerCase();
+  const question = String(body.question || '').trim();
 
-  if (!name || !email || !question) {
-    return {
-      statusCode: 400,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'name, email and question are required' }),
-    };
+  const errors = [];
+  if (!name)                          errors.push('Name is required');
+  else if (name.length > MAX_NAME)    errors.push(`Name must be ${MAX_NAME} characters or fewer`);
+
+  if (!email)                         errors.push('Email is required');
+  else if (email.length > MAX_EMAIL)  errors.push('Email address is too long');
+  else if (!EMAIL_RE.test(email))     errors.push('Please provide a valid email address');
+
+  if (!question)                          errors.push('Question is required');
+  else if (question.length > MAX_QUESTION) errors.push(`Question must be ${MAX_QUESTION} characters or fewer`);
+
+  if (errors.length) {
+    return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: errors[0] }) };
   }
 
+  // ── Create ticket ─────────────────────────────────────────────────────────
   try {
     const token  = await getZohoAccessToken();
     const result = await createTicket({ token, name, email, question });
-
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(result),
-    };
+    return { statusCode: 200, headers: corsHeaders, body: JSON.stringify(result) };
   } catch (err) {
-    console.error('ticket.js error:', err);
+    // Log full error internally but return a safe generic message to the client
+    console.error('ticket.js error:', err.message);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message }),
+      headers: corsHeaders,
+      body: JSON.stringify({ error: 'Unable to submit your question. Please try again or contact us directly.' }),
     };
   }
 };
 
 // ─── Zoho OAuth ──────────────────────────────────────────────────────────────
 async function getZohoAccessToken() {
-  // IMPORTANT: must use global accounts.zoho.com, not accounts.zoho.com.au
+  // IMPORTANT: must use accounts.zoho.com (global), NOT accounts.zoho.com.au
   const res = await fetch('https://accounts.zoho.com/oauth/v2/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -86,35 +104,33 @@ async function getZohoAccessToken() {
 
   const data = await res.json();
   if (!data.access_token) {
-    throw new Error(`Zoho token refresh failed: ${JSON.stringify(data)}`);
+    // Don't expose token error details externally
+    console.error('Zoho token refresh failed:', JSON.stringify(data));
+    throw new Error('Authentication error');
   }
   return data.access_token;
 }
 
 // ─── Create ticket ────────────────────────────────────────────────────────────
 async function createTicket({ token, name, email, question }) {
-  // Zoho requires at least a lastName on the contact object
-  const parts    = name.trim().split(/\s+/);
+  const parts    = name.split(/\s+/);
   const lastName = parts.length > 1 ? parts.slice(1).join(' ') : parts[0];
 
   const description = `${question}\n\n──\nSubmitted via NZF Zakat Q&A page`;
 
   const payload = {
-    subject:      `[QA] ${question.slice(0, 120)}`,
+    subject:      `[QA] ${question.slice(0, 100)}`,
     description,
     departmentId: DEPT_ID,
     assigneeId:   AGENT_ID,
     status:       'Open',
     channel:      'Web',
-    contact: {
-      lastName,
-      email,
-    },
+    contact: { lastName, email },
   };
 
-  // IMPORTANT: orgId as a HEADER, not query param
+  // orgId must be a HEADER, not a query param
   const res = await fetch('https://desk.zoho.com/api/v1/tickets', {
-    method:  'POST',
+    method: 'POST',
     headers: {
       Authorization:  `Zoho-oauthtoken ${token}`,
       'Content-Type': 'application/json',
@@ -124,13 +140,11 @@ async function createTicket({ token, name, email, question }) {
   });
 
   const data = await res.json();
-
   if (!data.id) {
-    throw new Error(`Ticket creation failed: ${JSON.stringify(data)}`);
+    console.error('Ticket creation failed:', JSON.stringify(data));
+    throw new Error('Ticket creation failed');
   }
 
-  // Propagation delay: verify the ticket exists before returning success.
-  // Zoho sometimes takes a moment to make a newly created ticket retrievable.
   await verifyTicketWithRetry(token, data.id);
 
   return {
@@ -140,36 +154,23 @@ async function createTicket({ token, name, email, question }) {
   };
 }
 
-// ─── Verification with retry + exponential backoff ────────────────────────────
+// ─── Verify with retry + exponential backoff ──────────────────────────────────
 async function verifyTicketWithRetry(token, ticketId, maxAttempts = 3) {
-  // Wait before first attempt — propagation delay is real
   await sleep(800);
-
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const res = await fetch(`https://desk.zoho.com/api/v1/tickets/${ticketId}`, {
-        headers: {
-          Authorization: `Zoho-oauthtoken ${token}`,
-          orgId:         ZOHO_ORG_ID,
-        },
+        headers: { Authorization: `Zoho-oauthtoken ${token}`, orgId: ZOHO_ORG_ID },
       });
-
-      if (res.ok) return true; // verified
-
-      const data = await res.json();
-      console.warn(`Ticket verify attempt ${attempt} — status ${res.status}:`, data);
+      if (res.ok) return true;
+      console.warn(`Verify attempt ${attempt} — status ${res.status}`);
     } catch (err) {
-      console.warn(`Ticket verify attempt ${attempt} — network error:`, err.message);
+      console.warn(`Verify attempt ${attempt} — error: ${err.message}`);
     }
-
-    if (attempt < maxAttempts) {
-      await sleep(800 * Math.pow(2, attempt - 1)); // 800ms, 1600ms
-    }
+    if (attempt < maxAttempts) await sleep(800 * Math.pow(2, attempt - 1));
   }
-
-  // All retries failed — but the ticket was created (we got an ID back).
-  // Log and return rather than throwing, to avoid false failure UX.
-  console.warn(`Could not verify ticket ${ticketId} after ${maxAttempts} attempts — trusting creation response`);
+  // Ticket was created (we have an ID) — trust the creation response
+  console.warn(`Could not verify ticket ${ticketId} — trusting creation response`);
   return true;
 }
 
