@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zakat Questions & Answers | NZF Australia</title>
+<meta name="description" content="Find answers to your Zakat questions from NZF Australia's expert knowledge base. Browse by topic or ask our Zakat assistant directly.">
+<meta property="og:title" content="Zakat Questions & Answers | NZF Australia">
+<meta property="og:description" content="Browse NZF Australia's Zakat knowledge base or chat with our Zakat assistant for personalised answers.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#EE3526">
+<meta name="robots" content="index, follow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bree+Serif&family=Cambay:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -37,7 +43,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; }
+html { min-height: 100%; } body { min-height: 100%; }
 body {
   font-family: var(--font-body);
   color: var(--black);
@@ -600,7 +606,7 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
 .chat-input:focus { border-color: var(--red); background: var(--white); box-shadow: 0 0 0 3px rgba(238,53,38,.08); }
 .chat-input::placeholder { color: var(--mid-grey); }
 .chat-send-btn {
-  width: 36px; height: 36px;
+  width: 44px; height: 44px;
   border-radius: 50%;
   background: var(--red);
   border: none;
@@ -735,6 +741,25 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
 .btn-done { display: inline-block; padding: 10px 28px; border: none; border-radius: var(--radius-pill); background: var(--red); font-family: var(--font-body); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--white); cursor: pointer; box-shadow: 0 2px 8px rgba(238,53,38,.25); }
 .btn-done:hover { background: var(--dark-red); }
 
+/* ─── Raise ticket inline button ─────────────────────────────── */
+.raise-ticket-btn {
+  display: inline-block;
+  margin-top: 6px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+  min-height: 44px;
+}
+.raise-ticket-btn:hover { background: var(--dark-red); transform: translateY(-1px); }
+.raise-ticket-btn:active { transform: scale(.97); }
+
 /* ─── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 960px) {
   .layout { grid-template-columns: 1fr; }
@@ -743,7 +768,8 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
   .chat-agent { height: 500px; }
 }
 @media (max-width: 640px) {
-  .hero-inner { padding: 28px 18px 24px; }
+  .hero { margin: 12px 14px 0; }
+  .hero-inner { padding: 24px 18px 20px; }
   .hero h1 { font-size: 22px; }
   .hero-lead { font-size: 13px; }
   .body-wrap { padding: 0 14px 24px; }
@@ -760,6 +786,7 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
 </head>
 <body>
 
+<noscript><p style="text-align:center;padding:20px;font-family:sans-serif;">This page requires JavaScript to display the Zakat Q&amp;A library. Please enable JavaScript in your browser.</p></noscript>
 <div class="page-shell">
 
   <!-- ── Hero ──────────────────────────────────────────────────── -->
@@ -790,10 +817,10 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
           </div>
 
           <div class="cat-pills-wrap">
-            <div class="cat-pills" id="catPills"></div>
+            <div class="cat-pills" id="catPills" role="group" aria-label="Filter by topic"></div>
           </div>
           <div class="status-bar">
-            <div class="status-text" id="statusText"></div>
+            <div class="status-text" id="statusText" aria-live="polite" aria-atomic="true"></div>
           </div>
         </div>
 
@@ -825,7 +852,7 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
             </div>
           </div>
 
-          <div class="chat-messages" id="chatMessages">
+          <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-label="Chat messages">
             <div class="msg agent">
               <div class="msg-avatar">🕌</div>
               <div class="msg-bubble">
@@ -857,6 +884,7 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
             <input type="text" class="chat-input" id="chatInput"
                    placeholder="Ask a Zakat question…"
                    autocomplete="off"
+                   maxlength="400"
                    aria-label="Ask a Zakat question">
             <button class="chat-send-btn" id="chatSendBtn" aria-label="Send">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
@@ -895,28 +923,28 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
 
 <!-- ── Ticket Form Modal ──────────────────────────────────────── -->
 <div class="ticket-form-wrap" id="ticketFormWrap">
-  <div class="ticket-form" role="dialog" aria-modal="true" aria-label="Submit a support ticket">
+  <div class="ticket-form" id="ticketFormBox" role="dialog" aria-modal="true" aria-labelledby="ticketFormTitle" aria-describedby="ticketFormDesc">
 
     <div id="ticketFormContent">
       <div class="ticket-form-header">
         <div class="ticket-form-icon">📋</div>
         <div class="ticket-form-title">
-          <h3>Submit a Question</h3>
-          <p>Our team will review your question and respond by email.</p>
+          <h3 id="ticketFormTitle">Submit a Question</h3>
+          <p id="ticketFormDesc">Our team will review your question and respond by email.</p>
         </div>
         <button class="ticket-close" onclick="closeTicketForm()" aria-label="Close">&#x2715;</button>
       </div>
       <div class="form-group">
         <label class="form-label" for="ticketName">Your Name</label>
-        <input type="text" class="form-input" id="ticketName" placeholder="e.g. Ahmed Hassan" autocomplete="name">
+        <input type="text" class="form-input" id="ticketName" placeholder="e.g. Ahmed Hassan" autocomplete="name" maxlength="120">
       </div>
       <div class="form-group">
         <label class="form-label" for="ticketEmail">Email Address</label>
-        <input type="email" class="form-input" id="ticketEmail" placeholder="you@example.com" autocomplete="email">
+        <input type="email" class="form-input" id="ticketEmail" placeholder="you@example.com" autocomplete="email" maxlength="254">
       </div>
       <div class="form-group">
         <label class="form-label" for="ticketQuestion">Your Question</label>
-        <textarea class="form-textarea" id="ticketQuestion" placeholder="Describe your Zakat question in as much detail as you like…"></textarea>
+        <textarea class="form-textarea" id="ticketQuestion" placeholder="Describe your Zakat question in as much detail as you like…" maxlength="2000"></textarea>
       </div>
       <div id="ticketFormError" style="display:none; color:var(--dark-red); font-size:12px; margin-bottom:8px;"></div>
       <div class="ticket-form-actions">
@@ -1347,7 +1375,7 @@ function setChatBusy(busy) {
 
 // Inline ticket button used inside bubbles
 function ticketBtn() {
-  return `<br><br><button onclick="handleUserMessage('raise a support ticket')" style="background:var(--red);color:#fff;border:none;padding:6px 14px;border-radius:9999px;font-family:var(--font-body);font-size:11.5px;font-weight:700;cursor:pointer;" onmouseover="this.style.background='var(--dark-red)'" onmouseout="this.style.background='var(--red)'">📋 Raise a Ticket</button>`;
+  return `<br><br><button class="raise-ticket-btn" data-action="raise-ticket">📋 Raise a Ticket</button>`;
 }
 
 async function handleUserMessage(text) {
@@ -1405,6 +1433,12 @@ function sendQuick(text) {
   handleUserMessage(text);
 }
 
+// Event delegation for dynamically injected raise-ticket buttons
+document.getElementById("chatMessages").addEventListener("click", function(e) {
+  const btn = e.target.closest("[data-action='raise-ticket']");
+  if (btn) handleUserMessage("raise a support ticket");
+});
+
 // Input events
 document.getElementById("chatInput").addEventListener("keydown", function(e) {
   if (e.key === "Enter" && !e.shiftKey) {
@@ -1439,12 +1473,26 @@ function openTicketForm(prefillQuestion) {
 }
 function closeTicketForm() {
   document.getElementById("ticketFormWrap").classList.remove("visible");
+  document.getElementById("chatInput").focus();
 }
 document.getElementById("ticketFormWrap").addEventListener("click", function(e) {
   if (e.target === this) closeTicketForm();
 });
 document.addEventListener("keydown", function(e) {
-  if (e.key === "Escape") closeTicketForm();
+  if (e.key === "Escape") { closeTicketForm(); return; }
+  // Focus trap inside modal
+  if (e.key !== "Tab") return;
+  const wrap = document.getElementById("ticketFormWrap");
+  if (!wrap.classList.contains("visible")) return;
+  const focusable = wrap.querySelectorAll(
+    'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex="0"]'
+  );
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if (e.shiftKey) {
+    if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+  } else {
+    if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
 });
 
 async function submitTicket() {
