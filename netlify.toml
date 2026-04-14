@@ -2,28 +2,23 @@
   publish   = "."
   functions = "netlify/functions"
   command   = "npm install"
-
 [functions]
   node_bundler = "esbuild"
-
 [functions."qa"]
   timeout = 20
-
 [functions."ticket"]
   timeout = 15
-
 # Route /api/* to matching Netlify function
 [[redirects]]
   from   = "/api/*"
   to     = "/.netlify/functions/:splat"
   status = 200
-
 # ── Security headers on all responses ────────────────────────────────────────
 [[headers]]
   for = "/*"
   [headers.values]
-    # Prevent this page being embedded in iframes on other domains
-    X-Frame-Options = "SAMEORIGIN"
+    # Allow embedding only from nzf.org.au (legacy browsers)
+    X-Frame-Options = "ALLOW-FROM https://www.nzf.org.au"
     # Prevent MIME-type sniffing
     X-Content-Type-Options = "nosniff"
     # Limit referrer data sent to third parties
@@ -37,9 +32,8 @@
     # - font-src fonts.gstatic.com: Google Fonts files
     # - connect-src 'self': fetch() only to same origin (API calls go to /api/*)
     # - img-src 'self' data:: allow inline SVG/data URIs
-    # - frame-ancestors 'self': matches X-Frame-Options above
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data:; frame-ancestors 'self';"
-
+    # - frame-ancestors: allow embedding from nzf.org.au (www and non-www)
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data:; frame-ancestors https://www.nzf.org.au https://nzf.org.au;"
 # Cache static assets aggressively (none currently, but good to have)
 [[headers]]
   for = "/static/*"
