@@ -762,6 +762,27 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
 .raise-ticket-btn:hover { background: var(--dark-red); transform: translateY(-1px); }
 .raise-ticket-btn:active { transform: scale(.97); }
 
+/* Inline "view answers" button inside chat bubbles */
+.inline-browse-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--red);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s;
+}
+.inline-browse-btn:hover { background: var(--dark-red); }
+
 /* Mobile tab bar: hidden on desktop, shown via the mobile media query */
 .mobile-tabs { display: none; }
 
@@ -959,13 +980,13 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
 
   <!-- ── Mobile tab bar (≤640px only, hidden on desktop via CSS) ── -->
   <div class="mobile-tabs" id="mobileTabs" role="tablist" aria-label="View switcher">
-    <button class="mobile-tab active" id="tabBrowse" role="tab" aria-selected="true" aria-controls="main-col-panel" touch-action="manipulation">
-      <span class="mobile-tab-icon">📋</span>
-      Browse Q&amp;A
-    </button>
-    <button class="mobile-tab" id="tabAsk" role="tab" aria-selected="false" aria-controls="ask-panel" touch-action="manipulation">
+    <button class="mobile-tab active" id="tabAsk" role="tab" aria-selected="true" aria-controls="ask-panel" touch-action="manipulation">
       <span class="mobile-tab-icon">🕌</span>
       Ask Assistant
+    </button>
+    <button class="mobile-tab" id="tabBrowse" role="tab" aria-selected="false" aria-controls="main-col-panel" touch-action="manipulation">
+      <span class="mobile-tab-icon">📋</span>
+      Browse Q&amp;A
     </button>
   </div>
 
@@ -1581,20 +1602,29 @@ async function handleUserMessage(text) {
 
   if (results.length === 0) {
     const resourceHtml = buildResourceLinks(resources);
+    const noResultHint = window.innerWidth <= 640
+      ? ` You can also <button class="inline-browse-btn" onclick="switchMobileTab('browse')">Browse Q&amp;A →</button> to explore all topics.`
+      : ` Try rephrasing, or use the category filters on the left to browse all topics.`;
     await appendMsg("agent",
-      `I searched our knowledge base but couldn't find a close match for "<strong>${esc(text)}</strong>". Try rephrasing, or browse by topic using the filters.${resourceHtml}${ticketBtn()}`);
+      `I searched our knowledge base but couldn't find a close match for "<strong>${esc(text)}</strong>".${noResultHint}${resourceHtml}${ticketBtn()}`);
   } else {
     const n = results.length;
     const resourceHtml = buildResourceLinks(resources);
+    const isMobile = window.innerWidth <= 640;
+    const browseRef = isMobile
+      ? `<br><button class="inline-browse-btn" onclick="switchMobileTab('browse')">View ${n} answer${n!==1?"s":""} in Browse Q&amp;A →</button>`
+      : ` — displayed to the left. Click any question to expand the answer.`;
     await appendMsg("agent",
-      `I've searched our knowledge base and found <strong>${n} relevant answer${n!==1?"s":""}</strong> — displayed to the left. Click any question to expand the answer.${resourceHtml}`);
+      `I've searched our knowledge base and found <strong>${n} relevant answer${n!==1?"s":""}</strong>${browseRef}${resourceHtml}`);
 
     renderAgentSearch(text);
 
     // Follow-up
     setTimeout(async () => {
-      await appendMsg("agent",
-        `Did those answers help? If your question is still unanswered, I can raise a support ticket for you.${ticketBtn()}`);
+      const followUp = window.innerWidth <= 640
+        ? `Did those answers help? Come back here if you need more help, or I can raise a support ticket for you.${ticketBtn()}`
+        : `Did those answers help? If your question is still unanswered, I can raise a support ticket for you.${ticketBtn()}`;
+      await appendMsg("agent", followUp);
     }, 500);
   }
 
@@ -1802,6 +1832,14 @@ function switchMobileTab(tab) {
   }
   on('tabBrowse', 'browse');
   on('tabAsk',    'ask');
+
+  // On mobile, initialise to Ask tab (hide browse panel, show sidebar)
+  if (window.innerWidth <= 640) {
+    const mainCol = document.querySelector('.main-col');
+    const sidebar = document.querySelector('.sidebar');
+    if (mainCol) mainCol.classList.add('tab-hidden');
+    if (sidebar) sidebar.classList.add('tab-active');
+  }
 })();
 
 loadData();
