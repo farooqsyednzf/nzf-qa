@@ -762,6 +762,9 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
 .raise-ticket-btn:hover { background: var(--dark-red); transform: translateY(-1px); }
 .raise-ticket-btn:active { transform: scale(.97); }
 
+/* Mobile tab bar: hidden on desktop, shown via the mobile media query */
+.mobile-tabs { display: none; }
+
 /* Close + Minimize buttons: only visible in mobile bottom sheet */
 .chat-header-close,
 .chat-header-minimize { display: none; }
@@ -792,53 +795,70 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
   .chat-agent { height: 500px; }
 }
 
-/* ─── Mobile: browse-first, chat as bottom sheet ─────────────── */
+/* ─── Mobile: tab switcher — works inside any iframe height ─── */
 @media (max-width: 640px) {
 
-  /* Prevent any element from causing horizontal page overflow */
+  /* Hard stop on horizontal overflow */
   html, body { overflow-x: hidden; max-width: 100vw; }
+  .page-shell, .main-col, .body-wrap { overflow-x: hidden; }
 
-  /* Contain overflow at every wrapper level */
-  .page-shell,
-  .main-col,
-  .body-wrap { overflow-x: hidden; }
+  /* Hero: hidden — the tab bar carries all the branding needed */
+  .hero { display: none; }
 
-  /* Hero: compact strip — keep branding, lose the paragraph */
-  .hero {
-    margin: 0;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    border-top: none;
-    box-shadow: none;
+  /* ── Tab bar ─────────────────────────────────────────────── */
+  .mobile-tabs {
+    display: flex;
+    background: var(--white);
+    border-bottom: 2px solid rgba(207,203,201,.5);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
   }
-  .hero-inner { padding: 14px 16px 12px; }
-  .eyebrow { font-size: 10px; margin-bottom: 4px; }
-  .hero h1 { font-size: 19px; margin-bottom: 0; }
-  .hero-lead { display: none; }
+  .mobile-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 13px 8px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--mid-grey);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .mobile-tab.active { color: var(--red); border-bottom-color: var(--red); }
+  .mobile-tab:active { background: var(--red-bg); }
+  .mobile-tab-icon { font-size: 15px; }
 
-  /* Body: no side padding, leave room for FAB at bottom */
-  .body-wrap { padding: 0 0 88px; }
-  .layout { grid-template-columns: 1fr; gap: 0; margin-top: 10px; }
+  /* Body */
+  .body-wrap { padding: 0 0 24px; }
+  .layout { grid-template-columns: 1fr; gap: 0; margin-top: 0; }
 
-  /* Main column: Q&A browse is the primary view.
-     Natural height — scrolls with the page, no clipping. */
+  /* ── Browse panel ────────────────────────────────────────── */
   .main-col {
     order: 1;
     height: auto;
-    padding: 16px 14px 8px;
+    padding: 14px 14px 8px;
     border-radius: 0;
     border-left: none;
     border-right: none;
     box-shadow: none;
   }
+  .main-col.tab-hidden { display: none; }
 
-  /* Results area: natural height, expands to content */
-  .results-scroll {
-    height: auto;
-    max-height: none;
-  }
+  /* Results: natural height, expands to content */
+  .results-scroll { height: auto; max-height: none; }
 
+  /* Category pills: single horizontal scroll row */
   .cat-pills-wrap {
     overflow-x: auto;
     overflow-y: hidden;
@@ -847,180 +867,41 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
     scrollbar-width: none;
   }
   .cat-pills-wrap::-webkit-scrollbar { display: none; }
-  .cat-pills {
-    display: flex;
-    flex-wrap: nowrap;
-    width: max-content;
-    max-width: none;
-  }
+  .cat-pills { display: flex; flex-wrap: nowrap; width: max-content; }
   .cat-pill { font-size: 12px; padding: 6px 12px; }
 
-  /* Card text sizing */
+  /* Card sizing */
   .qa-question { font-size: 14px; }
   .qa-card-head { padding: 13px 13px; }
 
-  /* Desktop sidebar: hidden — chat is in the bottom sheet */
+  /* ── Ask panel ───────────────────────────────────────────── */
+  /* Default: hidden. Shown when tab-active class is added by JS */
   .sidebar { display: none; }
-
-  /* Page footer: move inside body flow, compact */
-  .page-footer {
-    flex-direction: column;
-    border-radius: 0;
-    margin: 0;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-  }
-  .footer-divider { width: 100%; height: 1px; }
-  .footer-action { padding: 14px 20px; }
-  .disclaimer { margin: 12px 14px 0; padding-top: 10px; }
-
-  /* ── Floating Ask button ──────────────────────────────────── */
-  .mobile-ask-fab {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    position: fixed;
-    bottom: 20px;
-    right: 16px;
-    background: var(--red);
-    color: var(--white);
-    border: none;
-    border-radius: var(--radius-pill);
-    padding: 13px 20px 13px 16px;
-    font-family: var(--font-body);
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    z-index: 480;
-    box-shadow: 0 4px 18px rgba(238,53,38,.45);
-    transition: transform .15s, box-shadow .15s, background .15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .mobile-ask-fab:hover { background: var(--dark-red); transform: translateY(-2px); box-shadow: 0 6px 22px rgba(238,53,38,.5); }
-  .mobile-ask-fab:active { transform: scale(.96); }
-  .mobile-ask-fab .fab-icon {
-    width: 20px;
-    height: 20px;
-    background: rgba(255,255,255,.22);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    flex-shrink: 0;
-  }
-
-  /* ── Chat bottom sheet ───────────────────────────────────── */
-  .sidebar {
-    display: flex;          /* override the display:none above */
-    flex-direction: column;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 78vh;
-    max-height: 680px;
-    z-index: 500;
-    transform: translateY(100%);
-    transition: transform .32s cubic-bezier(.32,0,.67,0);
-    border-radius: 20px 20px 0 0;
-    overflow: hidden;
-    box-shadow: 0 -8px 40px rgba(35,31,31,.18);
-  }
-  .sidebar.sheet-open {
-    transform: translateY(0);
-    transition: transform .35s cubic-bezier(.33,1,.68,1);
-  }
-
-  /* Drag handle above chat header */
-  .sidebar::before {
-    content: '';
+  .sidebar.tab-active {
     display: block;
-    width: 36px;
-    height: 4px;
-    background: rgba(255,255,255,.5);
-    border-radius: 2px;
-    position: absolute;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    pointer-events: none;
+    width: 100%;
+    position: static;         /* no fixed, no absolute — purely in-flow */
+    transform: none;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
   }
+  /* Drag handle not needed in tab mode */
+  .sidebar::before { display: none; }
 
   .chat-agent {
-    height: 100%;
+    height: 80vh;
+    min-height: 520px;
     border-radius: 0;
-    border: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
     box-shadow: none;
-    flex: 1;
   }
 
-  /* Close + minimize buttons: 44px touch targets (Apple/Google minimum) */
+  /* Minimize / close buttons not needed without a bottom sheet */
   .chat-header-close,
-  .chat-header-minimize {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(255,255,255,.18);
-    border: none;
-    color: white;
-    font-size: 18px;
-    line-height: 1;
-    cursor: pointer;
-    flex-shrink: 0;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    position: relative;
-    z-index: 20;
-    transition: background .15s;
-  }
-  .chat-header-close:active,
-  .chat-header-minimize:active { background: rgba(255,255,255,.38); }
-
-  /* Minimized = fully off screen (sheet-open removed, default translateY(100%) applies) */
-
-  /* ── Restore tab: appears when chat is minimized ───────────── */
-  .chat-restore-tab {
-    display: none;
-    position: fixed;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--red);
-    color: var(--white);
-    padding: 9px 22px 11px;
-    border-radius: 14px 14px 0 0;
-    font-family: var(--font-body);
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    z-index: 480;
-    white-space: nowrap;
-    box-shadow: 0 -3px 12px rgba(238,53,38,.3);
-    transition: background .15s;
-    align-items: center;
-    gap: 7px;
-    border: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .chat-restore-tab.visible { display: flex; }
-  .chat-restore-tab:hover { background: var(--dark-red); }
-
-  /* FAB: hidden while user is actively scrolling */
-  .mobile-ask-fab.scroll-hidden {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(12px);
-    transition: opacity .2s, transform .2s;
-  }
-  .mobile-ask-fab {
-    transition: opacity .3s, transform .3s, background .15s, box-shadow .15s;
-  }
+  .chat-header-minimize { display: none !important; }
 
   /* Quick chips: single scrollable row */
   .quick-replies {
@@ -1039,7 +920,25 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
     padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Ticket form: full-width on small screens */
+  /* All fixed-position elements from the old design: hidden */
+  .mobile-ask-fab,
+  .mobile-chat-backdrop,
+  .chat-restore-tab { display: none !important; }
+
+  /* Footer */
+  .page-footer {
+    flex-direction: column;
+    border-radius: 0;
+    margin: 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+  }
+  .footer-divider { width: 100%; height: 1px; }
+  .footer-action { padding: 14px 20px; }
+  .disclaimer { margin: 12px 14px 0; padding-top: 10px; }
+
+  /* Ticket form */
   .ticket-form { padding: 22px 18px 20px; }
 }
 </style>
@@ -1056,6 +955,18 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
       <h1>Zakat Questions &amp; Answers</h1>
       <p class="hero-lead">Ask our Zakat assistant any question about Zakat. It will search our knowledge base and display the most relevant answers below. If it can't find what you're looking for, it will help you raise a ticket for our Zakat expert team to respond to.</p>
     </div>
+  </div>
+
+  <!-- ── Mobile tab bar (≤640px only, hidden on desktop via CSS) ── -->
+  <div class="mobile-tabs" id="mobileTabs" role="tablist" aria-label="View switcher">
+    <button class="mobile-tab active" id="tabBrowse" role="tab" aria-selected="true" aria-controls="main-col-panel" touch-action="manipulation">
+      <span class="mobile-tab-icon">📋</span>
+      Browse Q&amp;A
+    </button>
+    <button class="mobile-tab" id="tabAsk" role="tab" aria-selected="false" aria-controls="ask-panel" touch-action="manipulation">
+      <span class="mobile-tab-icon">🕌</span>
+      Ask Assistant
+    </button>
   </div>
 
   <!-- ── Body ──────────────────────────────────────────────────── -->
@@ -1850,102 +1761,51 @@ async function loadData() {
   }
 }
 
-/* ── Mobile chat bottom sheet ──────────────────────────────── */
-function openMobileChat() {
-  const sidebar    = document.querySelector('.sidebar');
-  const backdrop   = document.getElementById('chatBackdrop');
-  const fab        = document.getElementById('mobileAskFab');
-  const restoreTab = document.getElementById('chatRestoreTab');
-  if (!sidebar) return;
-  sidebar.classList.add('sheet-open');
-  sidebar.classList.remove('sheet-minimized');
-  backdrop.classList.add('open');
-  fab.style.display = 'none';
-  restoreTab.classList.remove('visible');
-  document.body.style.overflow = 'hidden';
-  setTimeout(() => {
-    const inp = document.getElementById('chatInput');
-    if (inp) inp.focus();
-  }, 360);
+/* ── Mobile tab switcher ────────────────────────────────────── */
+function switchMobileTab(tab) {
+  if (window.innerWidth > 640) return;
+  const mainCol   = document.querySelector('.main-col');
+  const sidebar   = document.querySelector('.sidebar');
+  const tabBrowse = document.getElementById('tabBrowse');
+  const tabAsk    = document.getElementById('tabAsk');
+  if (!mainCol || !sidebar || !tabBrowse || !tabAsk) return;
+
+  if (tab === 'ask') {
+    mainCol.classList.add('tab-hidden');
+    sidebar.classList.add('tab-active');
+    tabAsk.classList.add('active');
+    tabAsk.setAttribute('aria-selected', 'true');
+    tabBrowse.classList.remove('active');
+    tabBrowse.setAttribute('aria-selected', 'false');
+    window.scrollTo(0, 0);
+    setTimeout(() => {
+      const inp = document.getElementById('chatInput');
+      if (inp) inp.focus();
+    }, 80);
+  } else {
+    mainCol.classList.remove('tab-hidden');
+    sidebar.classList.remove('tab-active');
+    tabBrowse.classList.add('active');
+    tabBrowse.setAttribute('aria-selected', 'true');
+    tabAsk.classList.remove('active');
+    tabAsk.setAttribute('aria-selected', 'false');
+    window.scrollTo(0, 0);
+  }
 }
 
-function minimizeMobileChat() {
-  const sidebar    = document.querySelector('.sidebar');
-  const backdrop   = document.getElementById('chatBackdrop');
-  const fab        = document.getElementById('mobileAskFab');
-  const restoreTab = document.getElementById('chatRestoreTab');
-  if (!sidebar) return;
-  sidebar.classList.remove('sheet-open');
-  sidebar.classList.remove('sheet-minimized');
-  backdrop.classList.remove('open');
-  document.body.style.overflow = '';
-  restoreTab.classList.add('visible');
-  fab.style.display = 'none';
-}
-
-function closeMobileChat() {
-  const sidebar    = document.querySelector('.sidebar');
-  const backdrop   = document.getElementById('chatBackdrop');
-  const fab        = document.getElementById('mobileAskFab');
-  const restoreTab = document.getElementById('chatRestoreTab');
-  if (!sidebar) return;
-  sidebar.classList.remove('sheet-open');
-  sidebar.classList.remove('sheet-minimized');
-  backdrop.classList.remove('open');
-  restoreTab.classList.remove('visible');
-  if (window.innerWidth <= 640) fab.style.display = '';
-  document.body.style.overflow = '';
-}
-
-// Wire all mobile chat controls via addEventListener (more reliable than onclick on mobile)
-function wireMobileChatControls() {
-  function on(id, fn) {
+(function wireTabs() {
+  function on(id, tab) {
     const el = document.getElementById(id);
     if (!el) return;
-    // touchend fires faster than click (~300ms sooner on iOS); preventDefault stops ghost click
-    el.addEventListener('touchend', (e) => { e.preventDefault(); fn(); }, { passive: false });
-    el.addEventListener('click', fn);
+    el.addEventListener('touchend', (e) => { e.preventDefault(); switchMobileTab(tab); }, { passive: false });
+    el.addEventListener('click', () => switchMobileTab(tab));
   }
-  on('chatSheetMinimize', minimizeMobileChat);
-  on('chatSheetClose',    closeMobileChat);
-  on('mobileAskFab',      openMobileChat);
-  on('chatRestoreTab',    openMobileChat);
-  on('chatBackdrop',      closeMobileChat);
-}
-
-// FAB auto-hides while scrolling, reappears 1.5s after scroll stops
-(function() {
-  let scrollTimer = null;
-  window.addEventListener('scroll', () => {
-    const fab = document.getElementById('mobileAskFab');
-    if (!fab || window.innerWidth > 640) return;
-    if (fab.style.display !== 'none') {
-      fab.classList.add('scroll-hidden');
-    }
-    clearTimeout(scrollTimer);
-    scrollTimer = setTimeout(() => {
-      fab.classList.remove('scroll-hidden');
-    }, 1200);
-  }, { passive: true });
+  on('tabBrowse', 'browse');
+  on('tabAsk',    'ask');
 })();
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeMobileChat();
-});
-
-wireMobileChatControls();
 
 loadData();
 </script>
-<!-- ── Mobile: Ask button + chat backdrop ─────────────────────── -->
-<div class="mobile-chat-backdrop" id="chatBackdrop" onclick="closeMobileChat()"></div>
-<button class="chat-restore-tab" id="chatRestoreTab" onclick="openMobileChat()" aria-label="Reopen Zakat Assistant">
-  🕌 Zakat Assistant &uarr;
-</button>
-<button class="mobile-ask-fab" id="mobileAskFab" onclick="openMobileChat()" aria-label="Ask the Zakat Assistant">
-  <span class="fab-icon">🕌</span>
-  Ask a question
-</button>
 
 </body>
 </html>
