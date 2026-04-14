@@ -119,7 +119,7 @@ async function createTicket({ token, name, email, question }) {
   const description = `${question}\n\n──\nSubmitted via NZF Zakat Q&A page`;
 
   const payload = {
-    subject:      `[QA] ${question.slice(0, 100)}`,
+    subject:      `[QA-Agent] ${question.slice(0, 100)}`,
     description,
     departmentId: DEPT_ID,
     assigneeId:   AGENT_ID,
