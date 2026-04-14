@@ -957,27 +957,30 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
     flex: 1;
   }
 
-  /* Close + minimize buttons shown in bottom sheet */
+  /* Close + minimize buttons: 44px touch targets (Apple/Google minimum) */
   .chat-header-close,
   .chat-header-minimize {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: rgba(255,255,255,.18);
     border: none;
     color: white;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1;
     cursor: pointer;
     flex-shrink: 0;
-    transition: background .15s;
+    touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    position: relative;
+    z-index: 20;
+    transition: background .15s;
   }
-  .chat-header-close:hover,
-  .chat-header-minimize:hover { background: rgba(255,255,255,.32); }
+  .chat-header-close:active,
+  .chat-header-minimize:active { background: rgba(255,255,255,.38); }
 
   /* Minimized = fully off screen (sheet-open removed, default translateY(100%) applies) */
 
@@ -1107,8 +1110,8 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
                 NZF Australia
               </div>
             </div>
-            <button class="chat-header-minimize" id="chatSheetMinimize" onclick="minimizeMobileChat()" aria-label="Minimise chat">&#x2212;</button>
-            <button class="chat-header-close" id="chatSheetClose" onclick="closeMobileChat()" aria-label="Close chat">&#x2715;</button>
+            <button class="chat-header-minimize" id="chatSheetMinimize" aria-label="Minimise chat">&#x2212;</button>
+            <button class="chat-header-close" id="chatSheetClose" aria-label="Close chat">&#x2715;</button>
           </div>
 
           <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-label="Chat messages">
@@ -1849,9 +1852,9 @@ async function loadData() {
 
 /* ── Mobile chat bottom sheet ──────────────────────────────── */
 function openMobileChat() {
-  const sidebar   = document.querySelector('.sidebar');
-  const backdrop  = document.getElementById('chatBackdrop');
-  const fab       = document.getElementById('mobileAskFab');
+  const sidebar    = document.querySelector('.sidebar');
+  const backdrop   = document.getElementById('chatBackdrop');
+  const fab        = document.getElementById('mobileAskFab');
   const restoreTab = document.getElementById('chatRestoreTab');
   if (!sidebar) return;
   sidebar.classList.add('sheet-open');
@@ -1867,34 +1870,47 @@ function openMobileChat() {
 }
 
 function minimizeMobileChat() {
-  const sidebar   = document.querySelector('.sidebar');
-  const backdrop  = document.getElementById('chatBackdrop');
-  const fab       = document.getElementById('mobileAskFab');
+  const sidebar    = document.querySelector('.sidebar');
+  const backdrop   = document.getElementById('chatBackdrop');
+  const fab        = document.getElementById('mobileAskFab');
   const restoreTab = document.getElementById('chatRestoreTab');
   if (!sidebar) return;
-  // Remove open class — sheet slides back to default translateY(100%) = fully hidden
   sidebar.classList.remove('sheet-open');
   sidebar.classList.remove('sheet-minimized');
   backdrop.classList.remove('open');
   document.body.style.overflow = '';
-  // Show restore tab, keep FAB hidden
   restoreTab.classList.add('visible');
   fab.style.display = 'none';
 }
 
 function closeMobileChat() {
-  const sidebar   = document.querySelector('.sidebar');
-  const backdrop  = document.getElementById('chatBackdrop');
-  const fab       = document.getElementById('mobileAskFab');
+  const sidebar    = document.querySelector('.sidebar');
+  const backdrop   = document.getElementById('chatBackdrop');
+  const fab        = document.getElementById('mobileAskFab');
   const restoreTab = document.getElementById('chatRestoreTab');
   if (!sidebar) return;
   sidebar.classList.remove('sheet-open');
   sidebar.classList.remove('sheet-minimized');
   backdrop.classList.remove('open');
   restoreTab.classList.remove('visible');
-  // Show FAB again (only on mobile)
   if (window.innerWidth <= 640) fab.style.display = '';
   document.body.style.overflow = '';
+}
+
+// Wire all mobile chat controls via addEventListener (more reliable than onclick on mobile)
+function wireMobileChatControls() {
+  function on(id, fn) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // touchend fires faster than click (~300ms sooner on iOS); preventDefault stops ghost click
+    el.addEventListener('touchend', (e) => { e.preventDefault(); fn(); }, { passive: false });
+    el.addEventListener('click', fn);
+  }
+  on('chatSheetMinimize', minimizeMobileChat);
+  on('chatSheetClose',    closeMobileChat);
+  on('mobileAskFab',      openMobileChat);
+  on('chatRestoreTab',    openMobileChat);
+  on('chatBackdrop',      closeMobileChat);
 }
 
 // FAB auto-hides while scrolling, reappears 1.5s after scroll stops
@@ -1902,9 +1918,7 @@ function closeMobileChat() {
   let scrollTimer = null;
   window.addEventListener('scroll', () => {
     const fab = document.getElementById('mobileAskFab');
-    const restoreTab = document.getElementById('chatRestoreTab');
     if (!fab || window.innerWidth > 640) return;
-    // Only hide FAB if it's currently visible (chat is closed)
     if (fab.style.display !== 'none') {
       fab.classList.add('scroll-hidden');
     }
@@ -1918,6 +1932,8 @@ function closeMobileChat() {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeMobileChat();
 });
+
+wireMobileChatControls();
 
 loadData();
 </script>
