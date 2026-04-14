@@ -43,7 +43,8 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { min-height: 100%; } body { min-height: 100%; }
+html { min-height: 100%; }
+body { min-height: 100%; position: relative; }
 body {
   font-family: var(--font-body);
   color: var(--black);
@@ -959,6 +960,19 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
   .footer-action { padding: 14px 20px; }
   .disclaimer { margin: 12px 14px 0; padding-top: 10px; }
 
+  /* Ticket form: override fixed positioning — anchor to top of iframe
+     (where the chat panel lives) instead of middle of 1760px iframe */
+  .ticket-form-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    min-height: 600px;
+    align-items: flex-start;
+    padding-top: 60px;
+  }
+
   /* Ticket form */
   .ticket-form { padding: 22px 18px 20px; }
 }
@@ -1672,6 +1686,8 @@ function openTicketForm(prefillQuestion) {
   document.getElementById("ticketSubmitBtn").textContent = "Submit Question";
   qEl.value = (prefillQuestion && !isTicketIntent(prefillQuestion)) ? prefillQuestion : "";
   document.getElementById("ticketFormWrap").classList.add("visible");
+  // On mobile: scroll to top so the absolutely-positioned modal is in view
+  if (window.innerWidth <= 640) window.scrollTo(0, 0);
   setTimeout(() => document.getElementById("ticketName").focus(), 100);
 }
 function closeTicketForm() {
