@@ -352,6 +352,8 @@ a:hover { text-decoration: underline; }
   line-height: 1.8;
   color: var(--grey);
   white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
   background: var(--red-bg);
 }
 .qa-tags {
@@ -796,6 +798,11 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
   /* Prevent any element from causing horizontal page overflow */
   html, body { overflow-x: hidden; max-width: 100vw; }
 
+  /* Contain overflow at every wrapper level */
+  .page-shell,
+  .main-col,
+  .body-wrap { overflow-x: hidden; }
+
   /* Hero: compact strip — keep branding, lose the paragraph */
   .hero {
     margin: 0;
@@ -832,8 +839,6 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
     max-height: none;
   }
 
-  /* Category pills: single horizontally-scrollable row.
-     Use padding (not negative margins) to avoid page overflow. */
   .cat-pills-wrap {
     overflow-x: auto;
     overflow-y: hidden;
@@ -843,10 +848,10 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
   }
   .cat-pills-wrap::-webkit-scrollbar { display: none; }
   .cat-pills {
+    display: flex;
     flex-wrap: nowrap;
-    display: inline-flex;
-    min-width: 100%;
-    padding-right: 8px;
+    width: max-content;
+    max-width: none;
   }
   .cat-pill { font-size: 12px; padding: 6px 12px; }
 
