@@ -760,27 +760,148 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
 .raise-ticket-btn:hover { background: var(--dark-red); transform: translateY(-1px); }
 .raise-ticket-btn:active { transform: scale(.97); }
 
+/* Mobile-only Browse Q&A button in chat header */
+.chat-browse-btn {
+  display: none; /* hidden on desktop */
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: #fff;
+  border-radius: var(--radius-pill);
+  padding: 4px 11px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background .15s;
+  margin-left: auto;
+}
+.chat-browse-btn:hover { background: rgba(255,255,255,0.28); }
+
+@media (max-width: 640px) {
+  .chat-browse-btn { display: inline-flex; align-items: center; }
+}
+
 /* ─── Responsive ─────────────────────────────────────────────── */
+
+/* Tablet (960px and below) — stack layout, keep fixed heights */
 @media (max-width: 960px) {
   .layout { grid-template-columns: 1fr; }
   .main-col { height: 800px; order: 2; }
   .sidebar { position: static; order: 1; }
   .chat-agent { height: 500px; }
 }
+
+/* ─── Mobile (640px and below) — full chat-first experience ──── */
 @media (max-width: 640px) {
-  .hero { margin: 12px 14px 0; }
-  .hero-inner { padding: 24px 18px 20px; }
-  .hero h1 { font-size: 22px; }
-  .hero-lead { font-size: 13px; }
-  .body-wrap { padding: 0 14px 24px; }
-  .main-col { height: 700px; padding: 18px 16px 0; border-radius: var(--radius-md); }
+
+  /* 1. Hide the hero — the chat header already carries NZF branding.
+        This recovers ~150px of screen height instantly. */
+  .hero { display: none; }
+
+  /* 2. Strip all outer padding so the chat fills edge-to-edge */
+  .body-wrap { padding: 0; }
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-top: 0;
+  }
+
+  /* 3. Chat panel fills the full viewport height.
+        dvh accounts for the collapsing browser chrome on iOS/Android.
+        100vh is the fallback for older browsers. */
+  .sidebar { order: 1; }
+  .chat-agent {
+    height: 100dvh;
+    height: 100vh; /* fallback */
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    box-shadow: none;
+  }
+
+  /* 4. Quick-reply chips: single horizontally-scrollable row.
+        No more wrapping into 2–3 rows eating message space. */
+  .quick-replies {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    padding: 5px 14px 8px;
+    gap: 6px;
+  }
+  .quick-replies::-webkit-scrollbar { display: none; }
+  .quick-chip {
+    flex-shrink: 0;
+    padding: 6px 13px;
+    font-size: 12px;
+  }
+
+  /* 5. Safe-area padding for iPhone notch / home indicator */
+  .chat-input-row {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* 6. Q&A browse panel sits below the chat — scrollable if user
+        wants to dig deeper, but out of the way initially.
+        Remove fixed height so it expands naturally. */
+  .main-col {
+    order: 2;
+    height: auto;
+    min-height: 500px;
+    padding: 18px 16px 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
+    border-top: 3px solid var(--red);
+    margin-top: 0;
+  }
+
+  /* Results scroll inside main-col: give it a reasonable height */
+  .main-col .results-scroll {
+    max-height: 520px;
+  }
+
+  /* 7. Category pills in main-col: also scrollable row on mobile */
+  .cat-pills-wrap {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .cat-pills-wrap::-webkit-scrollbar { display: none; }
+  .cat-pills {
+    flex-wrap: nowrap;
+    width: max-content;
+  }
+
+  /* 8. Card adjustments for narrow screens */
   .qa-question { font-size: 14px; }
   .qa-card-head { padding: 14px 14px; }
-  .chat-agent { height: 440px; }
+
+  /* 9. Ticket form: tighter on small screens */
   .ticket-form { padding: 22px 18px 20px; }
-  .page-footer { flex-direction: column; border-radius: var(--radius-md); }
+
+  /* 10. Footer: stack vertically */
+  .page-footer {
+    flex-direction: column;
+    border-radius: var(--radius-md);
+    margin: 16px 14px;
+  }
   .footer-divider { width: 100%; height: 1px; }
   .footer-action { width: 100%; padding: 14px 20px; }
+
+  /* 11. Disclaimer: tighten spacing */
+  .disclaimer { margin: 12px 14px 24px; padding-top: 12px; }
 }
 </style>
 </head>
@@ -850,6 +971,9 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
                 NZF Australia
               </div>
             </div>
+            <button class="chat-browse-btn" id="chatBrowseBtn" onclick="document.querySelector('.main-col').scrollIntoView({behavior:'smooth'})" aria-label="Browse all Q&amp;A">
+              Browse ↓
+            </button>
           </div>
 
           <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-label="Chat messages">
