@@ -760,8 +760,9 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
 .raise-ticket-btn:hover { background: var(--dark-red); transform: translateY(-1px); }
 .raise-ticket-btn:active { transform: scale(.97); }
 
-/* Close button: only visible in mobile bottom sheet */
-.chat-header-close { display: none; }
+/* Close + Minimize buttons: only visible in mobile bottom sheet */
+.chat-header-close,
+.chat-header-minimize { display: none; }
 
 /* ─── Mobile Ask FAB — hidden on desktop ─────────────────────── */
 .mobile-ask-fab {
@@ -791,6 +792,9 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
 
 /* ─── Mobile: browse-first, chat as bottom sheet ─────────────── */
 @media (max-width: 640px) {
+
+  /* Prevent any element from causing horizontal page overflow */
+  html, body { overflow-x: hidden; max-width: 100vw; }
 
   /* Hero: compact strip — keep branding, lose the paragraph */
   .hero {
@@ -822,30 +826,27 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
     box-shadow: none;
   }
 
-  /* Results area: no fixed height, expands to content */
+  /* Results area: natural height, expands to content */
   .results-scroll {
-    overflow: visible;
-    max-height: none;
     height: auto;
+    max-height: none;
   }
 
-  /* Category pills: single horizontally-scrollable row */
+  /* Category pills: single horizontally-scrollable row.
+     Use padding (not negative margins) to avoid page overflow. */
   .cat-pills-wrap {
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
-    margin-left: -14px;
-    margin-right: -14px;
-    padding-left: 14px;
-    padding-right: 14px;
   }
   .cat-pills-wrap::-webkit-scrollbar { display: none; }
   .cat-pills {
     flex-wrap: nowrap;
-    width: max-content;
-    padding-right: 14px;
+    display: inline-flex;
+    min-width: 100%;
+    padding-right: 8px;
   }
   .cat-pill { font-size: 12px; padding: 6px 12px; }
 
@@ -951,8 +952,9 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
     flex: 1;
   }
 
-  /* Close button in chat header on mobile */
-  .chat-header-close {
+  /* Close + minimize buttons shown in bottom sheet */
+  .chat-header-close,
+  .chat-header-minimize {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -962,14 +964,23 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
     background: rgba(255,255,255,.18);
     border: none;
     color: white;
-    font-size: 14px;
+    font-size: 16px;
+    line-height: 1;
     cursor: pointer;
     flex-shrink: 0;
-    margin-left: auto;
     transition: background .15s;
     -webkit-tap-highlight-color: transparent;
   }
-  .chat-header-close:hover { background: rgba(255,255,255,.3); }
+  .chat-header-close:hover,
+  .chat-header-minimize:hover { background: rgba(255,255,255,.32); }
+
+  /* Minimized state: sheet peeks just enough to show its header */
+  .sidebar.sheet-minimized {
+    transform: translateY(calc(100% - 58px));
+    transition: transform .32s cubic-bezier(.32,0,.67,0);
+  }
+  /* Tapping the header when minimized re-expands */
+  .sidebar.sheet-minimized .chat-header { cursor: pointer; }
 
   /* Quick chips: single scrollable row */
   .quick-replies {
@@ -1059,6 +1070,7 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
                 NZF Australia
               </div>
             </div>
+            <button class="chat-header-minimize" id="chatSheetMinimize" onclick="minimizeMobileChat()" aria-label="Minimise chat">&#x2212;</button>
             <button class="chat-header-close" id="chatSheetClose" onclick="closeMobileChat()" aria-label="Close chat">&#x2715;</button>
           </div>
 
@@ -1805,14 +1817,25 @@ function openMobileChat() {
   const fab = document.getElementById('mobileAskFab');
   if (!sidebar) return;
   sidebar.classList.add('sheet-open');
+  sidebar.classList.remove('sheet-minimized');
   backdrop.classList.add('open');
   fab.style.display = 'none';
   document.body.style.overflow = 'hidden';
-  // Focus the chat input after sheet animates in
   setTimeout(() => {
     const inp = document.getElementById('chatInput');
     if (inp) inp.focus();
   }, 360);
+}
+
+function minimizeMobileChat() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('chatBackdrop');
+  const fab = document.getElementById('mobileAskFab');
+  if (!sidebar) return;
+  sidebar.classList.add('sheet-minimized');
+  backdrop.classList.remove('open');
+  document.body.style.overflow = '';
+  if (window.innerWidth <= 640) fab.style.display = 'none'; // FAB stays hidden; header is the re-entry point
 }
 
 function closeMobileChat() {
@@ -1821,11 +1844,27 @@ function closeMobileChat() {
   const fab = document.getElementById('mobileAskFab');
   if (!sidebar) return;
   sidebar.classList.remove('sheet-open');
+  sidebar.classList.remove('sheet-minimized');
   backdrop.classList.remove('open');
-  // Only re-show FAB on mobile
   if (window.innerWidth <= 640) fab.style.display = '';
   document.body.style.overflow = '';
 }
+
+// Tapping the chat header when minimised re-expands the sheet
+document.addEventListener('DOMContentLoaded', () => {
+  const header = document.querySelector('.chat-header');
+  if (header) {
+    header.addEventListener('click', (e) => {
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar && sidebar.classList.contains('sheet-minimized')) {
+        // Don't re-fire if close/minimize buttons were clicked
+        if (!e.target.closest('.chat-header-close') && !e.target.closest('.chat-header-minimize')) {
+          openMobileChat();
+        }
+      }
+    });
+  }
+});
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeMobileChat();
