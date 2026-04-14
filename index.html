@@ -979,13 +979,45 @@ mark.hl { background: var(--yellow); border-radius: 3px; padding: 1px 3px; color
   .chat-header-close:hover,
   .chat-header-minimize:hover { background: rgba(255,255,255,.32); }
 
-  /* Minimized state: sheet peeks just enough to show its header */
-  .sidebar.sheet-minimized {
-    transform: translateY(calc(100% - 58px));
-    transition: transform .32s cubic-bezier(.32,0,.67,0);
+  /* Minimized = fully off screen (sheet-open removed, default translateY(100%) applies) */
+
+  /* ── Restore tab: appears when chat is minimized ───────────── */
+  .chat-restore-tab {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--red);
+    color: var(--white);
+    padding: 9px 22px 11px;
+    border-radius: 14px 14px 0 0;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 480;
+    white-space: nowrap;
+    box-shadow: 0 -3px 12px rgba(238,53,38,.3);
+    transition: background .15s;
+    align-items: center;
+    gap: 7px;
+    border: none;
+    -webkit-tap-highlight-color: transparent;
   }
-  /* Tapping the header when minimized re-expands */
-  .sidebar.sheet-minimized .chat-header { cursor: pointer; }
+  .chat-restore-tab.visible { display: flex; }
+  .chat-restore-tab:hover { background: var(--dark-red); }
+
+  /* FAB: hidden while user is actively scrolling */
+  .mobile-ask-fab.scroll-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity .2s, transform .2s;
+  }
+  .mobile-ask-fab {
+    transition: opacity .3s, transform .3s, background .15s, box-shadow .15s;
+  }
 
   /* Quick chips: single scrollable row */
   .quick-replies {
@@ -1817,14 +1849,16 @@ async function loadData() {
 
 /* ── Mobile chat bottom sheet ──────────────────────────────── */
 function openMobileChat() {
-  const sidebar = document.querySelector('.sidebar');
-  const backdrop = document.getElementById('chatBackdrop');
-  const fab = document.getElementById('mobileAskFab');
+  const sidebar   = document.querySelector('.sidebar');
+  const backdrop  = document.getElementById('chatBackdrop');
+  const fab       = document.getElementById('mobileAskFab');
+  const restoreTab = document.getElementById('chatRestoreTab');
   if (!sidebar) return;
   sidebar.classList.add('sheet-open');
   sidebar.classList.remove('sheet-minimized');
   backdrop.classList.add('open');
   fab.style.display = 'none';
+  restoreTab.classList.remove('visible');
   document.body.style.overflow = 'hidden';
   setTimeout(() => {
     const inp = document.getElementById('chatInput');
@@ -1833,43 +1867,53 @@ function openMobileChat() {
 }
 
 function minimizeMobileChat() {
-  const sidebar = document.querySelector('.sidebar');
-  const backdrop = document.getElementById('chatBackdrop');
-  const fab = document.getElementById('mobileAskFab');
+  const sidebar   = document.querySelector('.sidebar');
+  const backdrop  = document.getElementById('chatBackdrop');
+  const fab       = document.getElementById('mobileAskFab');
+  const restoreTab = document.getElementById('chatRestoreTab');
   if (!sidebar) return;
-  sidebar.classList.add('sheet-minimized');
+  // Remove open class — sheet slides back to default translateY(100%) = fully hidden
+  sidebar.classList.remove('sheet-open');
+  sidebar.classList.remove('sheet-minimized');
   backdrop.classList.remove('open');
   document.body.style.overflow = '';
-  if (window.innerWidth <= 640) fab.style.display = 'none'; // FAB stays hidden; header is the re-entry point
+  // Show restore tab, keep FAB hidden
+  restoreTab.classList.add('visible');
+  fab.style.display = 'none';
 }
 
 function closeMobileChat() {
-  const sidebar = document.querySelector('.sidebar');
-  const backdrop = document.getElementById('chatBackdrop');
-  const fab = document.getElementById('mobileAskFab');
+  const sidebar   = document.querySelector('.sidebar');
+  const backdrop  = document.getElementById('chatBackdrop');
+  const fab       = document.getElementById('mobileAskFab');
+  const restoreTab = document.getElementById('chatRestoreTab');
   if (!sidebar) return;
   sidebar.classList.remove('sheet-open');
   sidebar.classList.remove('sheet-minimized');
   backdrop.classList.remove('open');
+  restoreTab.classList.remove('visible');
+  // Show FAB again (only on mobile)
   if (window.innerWidth <= 640) fab.style.display = '';
   document.body.style.overflow = '';
 }
 
-// Tapping the chat header when minimised re-expands the sheet
-document.addEventListener('DOMContentLoaded', () => {
-  const header = document.querySelector('.chat-header');
-  if (header) {
-    header.addEventListener('click', (e) => {
-      const sidebar = document.querySelector('.sidebar');
-      if (sidebar && sidebar.classList.contains('sheet-minimized')) {
-        // Don't re-fire if close/minimize buttons were clicked
-        if (!e.target.closest('.chat-header-close') && !e.target.closest('.chat-header-minimize')) {
-          openMobileChat();
-        }
-      }
-    });
-  }
-});
+// FAB auto-hides while scrolling, reappears 1.5s after scroll stops
+(function() {
+  let scrollTimer = null;
+  window.addEventListener('scroll', () => {
+    const fab = document.getElementById('mobileAskFab');
+    const restoreTab = document.getElementById('chatRestoreTab');
+    if (!fab || window.innerWidth > 640) return;
+    // Only hide FAB if it's currently visible (chat is closed)
+    if (fab.style.display !== 'none') {
+      fab.classList.add('scroll-hidden');
+    }
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+      fab.classList.remove('scroll-hidden');
+    }, 1200);
+  }, { passive: true });
+})();
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeMobileChat();
@@ -1879,6 +1923,9 @@ loadData();
 </script>
 <!-- ── Mobile: Ask button + chat backdrop ─────────────────────── -->
 <div class="mobile-chat-backdrop" id="chatBackdrop" onclick="closeMobileChat()"></div>
+<button class="chat-restore-tab" id="chatRestoreTab" onclick="openMobileChat()" aria-label="Reopen Zakat Assistant">
+  🕌 Zakat Assistant &uarr;
+</button>
 <button class="mobile-ask-fab" id="mobileAskFab" onclick="openMobileChat()" aria-label="Ask the Zakat Assistant">
   <span class="fab-icon">🕌</span>
   Ask a question
