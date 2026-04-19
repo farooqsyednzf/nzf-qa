@@ -12,7 +12,7 @@
  * - Server-side timestamp (client clocks can't be trusted)
  */
 
-const CODA_API_KEY = process.env.CODA_API_KEY;
+const CODA_API_KEY = process.env.CODA_QA_LOG_API;
 const CODA_DOC_ID  = 'cKc2cGnJOT';
 const TABLE_ID     = 'grid-5UiNgef5hU';
 
