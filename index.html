@@ -1586,6 +1586,31 @@ function ticketBtn() {
   return `<br><br><button class="raise-ticket-btn" data-action="raise-ticket">📋 Raise a Ticket</button>`;
 }
 
+/* ── Usage logging (fire and forget) ───────────────────────────
+   Writes to Coda QA_Usage_Log via /api/log. Never blocks the chat.
+   Dedupes identical question+event pairs within 10 seconds to
+   prevent double-taps from logging twice. */
+const _logRecent = new Map();
+function logUsage(eventType, question, resultsCount) {
+  try {
+    const key = eventType + '|' + question.trim().toLowerCase();
+    const now = Date.now();
+    const last = _logRecent.get(key);
+    if (last && now - last < 10000) return;  // dedupe 10s window
+    _logRecent.set(key, now);
+
+    // Keep the map small — clear entries older than 60s on each call
+    for (const [k, t] of _logRecent) if (now - t > 60000) _logRecent.delete(k);
+
+    fetch('/api/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: eventType, question: question, resultsCount: resultsCount }),
+      keepalive: true,
+    }).catch(() => {});  // swallow errors — logging is non-critical
+  } catch (e) { /* never fail */ }
+}
+
 async function handleUserMessage(text) {
   if (!text.trim() || chatBusy) return;
   if (QA_DATA.length === 0) {
@@ -1613,6 +1638,9 @@ async function handleUserMessage(text) {
   // Search
   const results = doSearch(text);
   const resources = matchResources(text);
+
+  // Fire-and-forget usage log (never blocks or breaks chat)
+  logUsage(results.length > 0 ? 'search_hit' : 'search_miss', text, results.length);
 
   if (results.length === 0) {
     const resourceHtml = buildResourceLinks(resources);
